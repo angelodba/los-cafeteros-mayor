@@ -1,0 +1,8 @@
+node_modules
+.next
+.vercel
+.vite
+.env*.local
+*.log
+.ds_store
+Thumbs.db

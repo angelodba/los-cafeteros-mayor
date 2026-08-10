@@ -1,0 +1,32 @@
+{
+  "name": "los-cafeteros-mayor",
+  "version": "1.0.0",
+  "description": "Feria de Hortalizas LOS CAFETEROS - Caracas (Precios al Mayor y Detal)",
+  "main": "index.html",
+  "scripts": {
+    "dev": "next dev -p 8000",
+    "build": "next build",
+    "start": "next start -p 8000"
+  },
+  "keywords": [
+    "hortalizas",
+    "caracas",
+    "los-cafeteros",
+    "restaurantes"
+  ],
+  "author": "LOS CAFETEROS",
+  "license": "ISC",
+  "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
+    "@studio-freight/react-lenis": "^0.0.47",
+    "@supabase/supabase-js": "^2.112.2",
+    "gsap": "^3.15.0",
+    "lenis": "^1.3.26",
+    "lucide-react": "^1.31.0",
+    "next": "^16.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.185.1"
+  }
+}

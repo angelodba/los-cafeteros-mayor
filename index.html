@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LOS CAFETEROS">
+    <meta name="theme-color" content="#F2EEDC">
+    <title>LOS CAFETEROS | Feria de Hortalizas en Caracas - Precios al Mayor y Detal</title>
+    <meta name="description" content="Hortalizas frescas de Mérida a la cocina de tu restaurante. Precios al mayor y detal. Despacho en Caracas. Cotiza en línea.">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Three.js r167 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.min.js"></script>
+    <!-- GSAP + ScrollTrigger -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <!-- Lenis Smooth Scroll -->
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/bundled/lenis.min.js"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body>
+
+    <!-- ═══════════════════════════════════════════════
+         PAGE LOADER
+    ═══════════════════════════════════════════════ -->
+    <div id="page-loader">
+        <div class="loader-brand">LOS <span>CAFETEROS</span></div>
+        <div class="loader-bar-wrapper">
+            <div class="loader-bar-track">
+                <div class="loader-bar-fill" id="loader-fill"></div>
+            </div>
+            <div class="loader-percent" id="loader-percent">CARGANDO... 0%</div>
+        </div>
+        <div class="loader-sys-text">SYS::FERIA_HORTALIZAS_CARACAS · VE · v5.0</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         WEBGL CANVAS LAYER
+    ═══════════════════════════════════════════════ -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Film Grain Overlay -->
+    <div id="grain-overlay" aria-hidden="true"></div>
+
+    <!-- ═══════════════════════════════════════════════
+         TECHNICAL CORNER FRAMES (HUD)
+    ═══════════════════════════════════════════════ -->
+    <div class="tech-frame tech-frame--tl" aria-hidden="true">
+        <span>SYS::LOS_CAFETEROS</span>
+        <span>FERIA DE HORTALIZAS</span>
+        <span>CARACAS · VE</span>
+    </div>
+    <div class="tech-frame tech-frame--tr" aria-hidden="true">
+        <span>LAT: 10.48°N / LONG: 66.89°W</span>
+        <span>DESPACHO DIRECTO</span>
+        <span id="frame-time">--:-- HRS</span>
+    </div>
+    <div class="tech-frame tech-frame--bl" aria-hidden="true">
+        <span>COSECHA DIARIA · MÉRIDA</span>
+        <span>FRESCURA GARANTIZADA</span>
+    </div>
+    <div class="tech-frame tech-frame--br" aria-hidden="true">
+        <span>TASA BCV EN VIVO</span>
+        <span id="frame-bcv">CARGANDO...</span>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         BACKGROUND DECORATIONS
+    ═══════════════════════════════════════════════ -->
+    <div class="bg-decorations" aria-hidden="true">
+        <div class="dot-matrix top-left"></div>
+        <div class="dot-matrix top-right"></div>
+        <div class="circle-accent accent-lime"></div>
+        <div class="circle-accent accent-red"></div>
+        <div class="circle-accent accent-yellow"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         HEADER
+    ═══════════════════════════════════════════════ -->
+    <header class="main-header" id="main-header">
+        <div class="container header-container">
+            <a href="#" class="logo-wrapper" id="brand-logo">
+                <img src="logo-cropped.png" alt="LOS CAFETEROS - Feria de Hortalizas" class="original-brand-logo">
+                <div class="header-sys-tag">
+                    <span>MAYORISTA · DETAL</span>
+                    <span>CARACAS · VE</span>
+                </div>
+            </a>
+
+            <div class="header-actions">
+                <button class="btn btn-outline" id="btn-open-location">
+                    <i data-lucide="map-pin"></i>
+                    <span>Ubicación</span>
+                </button>
+                <button class="btn btn-cart" id="btn-open-cart">
+                    <i data-lucide="shopping-bag"></i>
+                    <span>Cotización</span>
+                    <span class="cart-badge" id="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════
+         HERO BANNER
+    ═══════════════════════════════════════════════ -->
+    <section class="hero-banner">
+        <div class="container hero-grid">
+            <div class="hero-content">
+                <!-- Eyebrow -->
+                <div class="hero-eyebrow gsap-fade-up">
+                    <div class="hero-eyebrow-line"></div>
+                    <span class="hero-eyebrow-text">Cosecha Diaria · Caracas, Venezuela</span>
+                </div>
+
+                <!-- Badge -->
+                <div class="hero-badge gsap-fade-up">
+                    <i data-lucide="truck"></i> Despacho Directo a Restaurantes y Comercios
+                </div>
+
+                <!-- Title -->
+                <h1 class="hero-title gsap-fade-up">
+                    Hortalizas<br>
+                    del Campo<br>
+                    a tu <span class="text-accent">Cocina</span>
+                </h1>
+
+                <p class="hero-description gsap-fade-up">
+                    Garantizamos la máxima calidad, frescura de cosecha diaria y la mejor relación costo-rendimiento para la alta gastronomía caraqueña y compras familiares.
+                </p>
+
+                <!-- Wholesale Info Box -->
+                <div class="wholesale-info-box gsap-fade-up">
+                    <div class="info-icon">
+                        <i data-lucide="scale"></i>
+                    </div>
+                    <div class="info-text">
+                        <strong>Tarifas Especiales Al Mayor</strong>
+                        <p>Precios preferenciales automáticos al alcanzar <strong>30 kg por rubro</strong> en tu cotización.</p>
+                    </div>
+                </div>
+
+                <!-- Hero Buttons -->
+                <div class="hero-buttons gsap-fade-up">
+                    <a href="https://wa.me/584247087749?text=Hola%20Feria%20LOS%20CAFETEROS,%20quisiera%20consultar%20disponibilidad%20y%20precios" target="_blank" rel="noopener" class="btn btn-whatsapp">
+                        <i data-lucide="message-circle"></i>
+                        <span>Contactar por WhatsApp</span>
+                    </a>
+                    <button class="btn btn-secondary" id="btn-hero-location">
+                        <i data-lucide="map-pin"></i>
+                        <span>Ver Ubicación</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hero Visual Card -->
+            <div class="hero-visual">
+                <div class="hero-card">
+                    <!-- Kinetic Badge -->
+                    <div class="kinetic-badge">
+                        <svg viewBox="0 0 96 96" width="96" height="96">
+                            <defs>
+                                <path id="kineticCircle" d="M 48,48 m -36,0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0"/>
+                            </defs>
+                            <text font-family="Space Mono, monospace" font-size="9" font-weight="700" fill="#65A61A" letter-spacing="2.2">
+                                <textPath href="#kineticCircle">HORTALIZAS · CARACAS · AL MAYOR · </textPath>
+                            </text>
+                        </svg>
+                        <div class="kinetic-badge-center">
+                            <span>🌿</span>
+                        </div>
+                    </div>
+
+                    <div class="logo-showcase">
+                        <img src="logo-cropped.png" alt="Feria de Hortalizas LOS CAFETEROS" class="original-hero-logo">
+                    </div>
+                    <div class="hero-metrics">
+                        <div class="metric-item">
+                            <span class="metric-val">100%</span>
+                            <span class="metric-lbl">Frescura a tu<br>Establecimiento</span>
+                        </div>
+                        <div class="metric-divider"></div>
+                        <div class="metric-item">
+                            <span class="metric-val">Entregas</span>
+                            <span class="metric-lbl">Lunes, Martes<br>y Miércoles</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         TICKER BAR — Editorial Marquee
+    ═══════════════════════════════════════════════ -->
+    <section class="ticker-bar" aria-label="Información en vivo">
+        <div class="ticker-track" id="ticker-track">
+            <!-- Set 1 -->
+            <div class="ticker-item">
+                <i data-lucide="check-circle-2" class="icon-green"></i>
+                <span>Atención especializada a Chef y Compradores de Alimentos</span>
+            </div>
+            <span class="ticker-sep">//</span>
+            <div class="ticker-item">
+                <i data-lucide="sparkles" class="icon-yellow"></i>
+                <span><strong>Precios Al Mayor:</strong> Automáticos al alcanzar 30 kg por rubro</span>
+            </div>
+            <span class="ticker-sep">//</span>
+            <div class="ticker-item">
+                <i data-lucide="building-2" class="icon-green"></i>
+                <span>Tasa BCV Oficial: <strong id="bcv-rate-display">Cargando...</strong> <small id="bcv-rate-date"></small></span>
+            </div>
+            <span class="ticker-sep">//</span>
+            <div class="ticker-item">
+                <i data-lucide="truck" class="icon-yellow"></i>
+                <span>Despacho: Lunes, Martes y Miércoles · 6:00 AM – 7:30 PM</span>
+            </div>
+            <span class="ticker-sep">//</span>
+            <!-- Set 2 (duplicate for seamless loop) -->
+            <div class="ticker-item">
+                <i data-lucide="check-circle-2" class="icon-green"></i>
+                <span>Atención especializada a Chef y Compradores de Alimentos</span>
+            </div>
+            <span class="ticker-sep">//</span>
+            <div class="ticker-item">
+                <i data-lucide="sparkles" class="icon-yellow"></i>
+                <span><strong>Precios Al Mayor:</strong> Automáticos al alcanzar 30 kg por rubro</span>
+            </div>
+            <span class="ticker-sep">//</span>
+            <div class="ticker-item">
+                <i data-lucide="building-2" class="icon-green"></i>
+                <span>Tasa BCV Oficial: <strong>En Vivo</strong></span>
+            </div>
+            <span class="ticker-sep">//</span>
+            <div class="ticker-item">
+                <i data-lucide="truck" class="icon-yellow"></i>
+                <span>Despacho: Lunes, Martes y Miércoles · 6:00 AM – 7:30 PM</span>
+            </div>
+            <span class="ticker-sep">//</span>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         CATALOG SECTION
+    ═══════════════════════════════════════════════ -->
+    <main class="main-catalog container">
+        <div class="catalog-header">
+            <div>
+                <div class="section-eyebrow">
+                    <span class="section-eyebrow-num">02 — CATÁLOGO</span>
+                    <div class="section-eyebrow-line"></div>
+                </div>
+                <h2 class="section-title gsap-fade-up">Nuestras Hortalizas<br>&amp; Productos</h2>
+                <p class="section-subtitle gsap-fade-up">Selecciona los rubros para armar la cotización de tu pedido en vivo</p>
+            </div>
+
+            <!-- Filtro de Categorías -->
+            <div class="category-tabs" id="category-tabs">
+                <button class="tab-btn active" data-category="all">Todos</button>
+                <button class="tab-btn" data-category="hortalizas">Hortalizas</button>
+                <button class="tab-btn" data-category="tuberculos">Tubérculos</button>
+                <button class="tab-btn" data-category="hojas">Hojas &amp; Hortalizas</button>
+                <button class="tab-btn" data-category="alinos">Aliños &amp; Ajos</button>
+                <button class="tab-btn" data-category="frutas">Frutas</button>
+            </div>
+        </div>
+
+        <!-- Barra de Búsqueda -->
+        <div class="catalog-search-container">
+            <div class="search-bar-wrapper">
+                <div class="search-left-icon">
+                    <i data-lucide="search"></i>
+                </div>
+                <input
+                    type="text"
+                    id="product-search-input"
+                    class="search-bar-input"
+                    placeholder="Buscar por nombre, categoría (ej: papa, pimentón, aliños)..."
+                    autocomplete="off"
+                    aria-label="Buscar productos"
+                >
+                <span class="search-count-pill hidden" id="search-count-badge">0 rubros</span>
+                <button id="btn-clear-search" class="btn-clear-search hidden" title="Limpiar búsqueda (Esc)" aria-label="Limpiar búsqueda">
+                    <i data-lucide="x"></i>
+                </button>
+                <kbd class="search-shortcut-badge" title="Presiona Ctrl + K para buscar rápido">Ctrl K</kbd>
+            </div>
+
+            <!-- Autocompletado -->
+            <div id="search-suggestions-dropdown" class="search-suggestions-dropdown hidden" role="listbox"></div>
+
+            <!-- Quick Chips -->
+            <div class="quick-search-chips" id="quick-search-chips">
+                <span class="chip-label"><i data-lucide="sparkles"></i> Populares:</span>
+                <button class="search-chip" data-search="Tomate">🍅 Tomate <span class="chip-count" id="chip-count-Tomate"></span></button>
+                <button class="search-chip" data-search="Pimentón">🫑 Pimentón <span class="chip-count" id="chip-count-Pimentón"></span></button>
+                <button class="search-chip" data-search="Cebolla">🧅 Cebolla <span class="chip-count" id="chip-count-Cebolla"></span></button>
+                <button class="search-chip" data-search="Papa">🥔 Papa <span class="chip-count" id="chip-count-Papa"></span></button>
+                <button class="search-chip" data-search="Aguacate">🥑 Aguacate <span class="chip-count" id="chip-count-Aguacate"></span></button>
+                <button class="search-chip" data-search="Ajo">🧄 Ajo <span class="chip-count" id="chip-count-Ajo"></span></button>
+            </div>
+        </div>
+
+        <!-- Indicador de Modo de Compra -->
+        <div class="pricing-mode-banner" id="pricing-banner">
+            <div class="mode-banner-content" style="display:flex;align-items:center;gap:16px;">
+                <i data-lucide="scale" class="mode-banner-icon"></i>
+                <div>
+                    <h3 id="mode-title">Descuentos Automáticos Al Mayor a partir de 30 kg</h3>
+                    <p id="mode-desc">Arma tu cotización: al alcanzar 30 kg por rubro obtienes Precios Al Mayor automáticamente.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid de Productos -->
+        <div class="products-grid" id="products-grid">
+            <!-- Renderizado dinámico vía app.js -->
+        </div>
+
+        <!-- Sin resultados -->
+        <div class="no-products-found hidden" id="no-products-msg">
+            <div class="no-products-icon">
+                <i data-lucide="search-x"></i>
+            </div>
+            <h3>No encontramos hortalizas para "<span id="no-products-query"></span>"</h3>
+            <p>Prueba buscando sin tildes, con otro término o selecciona uno de nuestros rubros populares:</p>
+            <div class="no-products-suggestions" id="no-products-suggestions">
+                <button class="search-chip" data-search="Tomate">🍅 Tomate</button>
+                <button class="search-chip" data-search="Pimentón">🫑 Pimentón</button>
+                <button class="search-chip" data-search="Papa">🥔 Papa</button>
+                <button class="search-chip" data-search="Aliños">🧄 Aliños</button>
+            </div>
+            <button class="btn btn-primary" id="btn-reset-search">Ver todo el catálogo</button>
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════════
+         MODAL UBICACIÓN
+    ═══════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="location-modal">
+        <div class="modal-card">
+            <button class="modal-close" id="btn-close-location">
+                <i data-lucide="x"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-icon-badge">
+                    <i data-lucide="map-pin"></i>
+                </div>
+                <div>
+                    <h3>Ubicación y Cobertura de Despacho</h3>
+                    <p>Feria de Hortalizas LOS CAFETEROS — Caracas, Venezuela</p>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="location-details-grid">
+                    <div class="location-info-card">
+                        <h4><i data-lucide="building-2"></i> Punto Principal de Venta</h4>
+                        <p><strong>Dirección:</strong> Av. Principal de La Urbina, en el estacionamiento de la parroquia Corpus Christi, Caracas.</p>
+                        <p><strong>Horarios:</strong> Lunes, Martes y Miércoles de 6:00 AM a 7:30 PM.</p>
+                        <p><strong>Teléfono:</strong> +58 (424) 708-7749</p>
+                    </div>
+                    <div class="location-info-card">
+                        <h4><i data-lucide="truck"></i> Zonas de Despacho en Caracas</h4>
+                        <ul class="zones-list">
+                            <li><i data-lucide="check"></i> Municipio Chacao (Las Mercedes, Altamira, El Bosque, La Castellana)</li>
+                            <li><i data-lucide="check"></i> Municipio Baruta (Colinas de Bello Monte, Valle Arriba, Santa Fe)</li>
+                            <li><i data-lucide="check"></i> Municipio El Hatillo (La Lagunita, Los Naranjos)</li>
+                            <li><i data-lucide="check"></i> Municipio Libertador (El Recreo, Montalbán, Paraíso, Centro)</li>
+                            <li><i data-lucide="check"></i> Municipio Sucre (Los Dos Caminos, Sebucán, La Urbina)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="map-container-frame">
+                    <iframe
+                        id="google-maps-iframe"
+                        src="https://maps.google.com/maps?q=Feria+de+Hortalizas+LOS+CAFETEROS+Caracas&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                        width="100%"
+                        height="260"
+                        style="border:0; display: block;"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="https://maps.app.goo.gl/JGqm7WzSMJofa2Ah6" id="google-maps-external-link" target="_blank" rel="noopener" class="btn btn-secondary">
+                    <i data-lucide="external-link"></i> Abrir en Google Maps
+                </a>
+                <button class="btn btn-primary" id="btn-understood-location">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         CART DRAWER
+    ═══════════════════════════════════════════════ -->
+    <div class="drawer-overlay" id="cart-drawer-overlay">
+        <div class="cart-drawer">
+            <div class="drawer-header">
+                <div class="drawer-title-group">
+                    <i data-lucide="shopping-cart"></i>
+                    <div>
+                        <h3>Cotización de Pedido</h3>
+                        <span class="drawer-subtitle" id="cart-mode-subtitle">Cotización Automatizada</span>
+                    </div>
+                </div>
+                <button class="drawer-close" id="btn-close-cart">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="drawer-body">
+                <!-- Progreso al Mayor -->
+                <div class="cart-wholesale-progress-box" id="cart-wholesale-progress-box">
+                    <div class="progress-info">
+                        <span><i data-lucide="scale"></i> Progreso Tarifa Al Mayor: <strong id="progress-kg-val">Mayor a partir de 30 kg/unid</strong></span>
+                        <span id="progress-percent-val">0 con Tarifa Mayor</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%;"></div>
+                    </div>
+                    <p class="progress-status-msg" id="progress-status-msg">Agrega 30 kg por rubro para activar Precios Al Mayor automáticamente.</p>
+                </div>
+
+                <!-- Banner al Mayor -->
+                <div class="cart-wholesale-status hidden" id="cart-wholesale-status">
+                    <i data-lucide="sparkles"></i>
+                    <span id="wholesale-status-text">¡Estás aprovechando tarifas especiales Al Mayor!</span>
+                </div>
+
+                <!-- Items -->
+                <div class="cart-items-list" id="cart-items-list"></div>
+
+                <!-- Empty State -->
+                <div class="empty-cart-view hidden" id="empty-cart-view">
+                    <i data-lucide="shopping-bag" class="empty-cart-icon"></i>
+                    <h4>Tu carrito está vacío</h4>
+                    <p>Agrega hortalizas y productos del catálogo para generar tu cotización al instante.</p>
+                </div>
+
+                <!-- Formulario Datos del Negocio -->
+                <div class="restaurant-form-section" id="restaurant-form">
+                    <h4 class="form-section-title">
+                        <i data-lucide="clipboard-list"></i> Datos para la Cotización / Despacho
+                    </h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="input-restaurant-name">Nombre del Restaurante o Cliente *</label>
+                            <input type="text" id="input-restaurant-name" placeholder="Ej: Trattoria Bellini / Chef Carlos" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-rif">RIF o Cédula</label>
+                            <input type="text" id="input-rif" placeholder="Ej: J-12345678-0">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-zone">Zona de Entrega en Caracas *</label>
+                            <input type="text" id="input-zone" placeholder="Ej: Las Mercedes, Calle Paris" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-phone">Teléfono de Contacto</label>
+                            <input type="tel" id="input-phone" placeholder="Ej: 0414-1234567">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="input-notes">Observaciones o Requerimientos Especiales</label>
+                            <textarea id="input-notes" rows="2" placeholder="Ej: Pimentones bien rojos, cebollas medianas..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drawer Footer -->
+            <div class="drawer-footer">
+                <div class="summary-rows">
+                    <div class="summary-row">
+                        <span>Total de Rubros:</span>
+                        <strong id="summary-items-count">0 items</strong>
+                    </div>
+                    <div class="summary-row total-row">
+                        <span>Total Estimado USD:</span>
+                        <strong class="total-price-usd" id="summary-total-usd">$0.00</strong>
+                    </div>
+                    <div class="summary-row bcv-row">
+                        <span>Ref. en Bs (Tasa BCV Est.):</span>
+                        <span id="summary-total-bs">Bs 0.00</span>
+                    </div>
+                </div>
+                <button class="btn btn-whatsapp btn-block" id="btn-send-whatsapp">
+                    <i data-lucide="send"></i>
+                    <span>Enviar Cotización por WhatsApp</span>
+                </button>
+                <p class="whatsapp-disclaimer">Recibirás confirmación inmediata de peso exacto y horario de despacho.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         FOOTER
+    ═══════════════════════════════════════════════ -->
+    <footer class="main-footer">
+        <div class="container footer-grid">
+            <div class="footer-col">
+                <a href="#" class="logo-wrapper">
+                    <img src="logo-cropped.png" alt="LOS CAFETEROS Feria de Hortalizas" class="original-footer-logo">
+                </a>
+                <p class="footer-desc">
+                    El proveedor confiable de hortalizas, tubérculos y frutas de calidad superior para los mejores restaurantes, hoteles y hogares de Caracas.
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Contacto y Ventas</h4>
+                <ul class="footer-links">
+                    <li><i data-lucide="phone"></i> +58 (424) 708-7749</li>
+                    <li><a href="https://wa.me/584247087749" target="_blank" rel="noopener" style="color:inherit; display:flex; align-items:center; gap:10px;"><i data-lucide="message-square"></i> WhatsApp Directo Ventas</a></li>
+                    <li><i data-lucide="mail"></i> ventas@loscafeterosferia.ve</li>
+                    <li><a href="https://maps.app.goo.gl/JGqm7WzSMJofa2Ah6" target="_blank" rel="noopener" style="color:inherit; display:flex; align-items:center; gap:10px;"><i data-lucide="map-pin"></i> La Urbina, Caracas (Ver Ubicación)</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Horarios de Atención</h4>
+                <p style="font-family:var(--font-mono); font-size:0.78rem; color: rgba(255,255,255,0.5); margin-bottom:6px;"><strong style="color:#fff;">Lunes, Martes y Miércoles:</strong></p>
+                <p style="font-family:var(--font-mono); font-size:0.78rem; color: rgba(255,255,255,0.5); margin-bottom:16px;">6:00 AM — 7:30 PM</p>
+                <div class="footer-badges">
+                    <span class="f-badge">Ventas al Mayor</span>
+                    <span class="f-badge">Ventas al Detal</span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom container">
+            <p>&copy; 2026 LOS CAFETEROS Feria de Hortalizas. Todos los derechos reservados. Caracas, Venezuela.</p>
+            <p style="font-size:0.65rem;">SYS::v5.0 · AWWWDS STYLE · MADE IN VE</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="stockService.js?v=5"></script>
+    <script src="app.js?v=5"></script>
+</body>
+</html>
