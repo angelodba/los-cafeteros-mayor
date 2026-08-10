@@ -1643,8 +1643,9 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Responsive & Mobile Enhancements (iOS & Android) */
 @media (max-width: 1024px) {
-    .hero-grid { grid-template-columns: 1fr; gap: 48px; }
-    .hero-visual { display: none; }
+    .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+    .hero-visual { display: flex; justify-content: center; width: 100%; margin-top: 12px; }
+    .hero-card { max-width: 290px; width: 100%; }
 }
 
 @media (max-width: 768px) {

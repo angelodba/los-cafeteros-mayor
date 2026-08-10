@@ -2335,8 +2335,9 @@ mark.search-highlight {
    RESPONSIVE (iOS & Android)
    ============================================================ */
 @media (max-width: 1024px) {
-    .hero-grid { grid-template-columns: 1fr; gap: 48px; }
-    .hero-visual { display: none; }
+    .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+    .hero-visual { display: flex; justify-content: center; width: 100%; margin-top: 12px; }
+    .hero-card { max-width: 290px; width: 100%; }
     .hero-title { font-size: clamp(2.5rem, 8vw, 4rem); }
 }
 

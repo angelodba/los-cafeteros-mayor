@@ -1,8 +1,19 @@
 'use client';
 
+import { useRef, useEffect } from 'react';
 import { Truck, Scale, MessageCircle, MapPin, Sparkles } from 'lucide-react';
 
 export default function HeroSection({ onOpenLocation, onOpenCanvaIntro }) {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch((err) => {
+        console.log('[iOS Video] Autoplay handler:', err);
+      });
+    }
+  }, []);
+
   return (
     <section className="hero-banner">
       <div className="container hero-grid">
@@ -75,15 +86,17 @@ export default function HeroSection({ onOpenLocation, onOpenCanvaIntro }) {
               </div>
             </div>
 
-            {/* Video Corto HTML5 Ajustado al Marco */}
+            {/* Video Corto HTML5 Ajustado al Marco para iOS/Android */}
             <div className="hero-card-video-container">
               <video
+                ref={videoRef}
                 src="/feria-los-cafeteros.mp4"
                 autoPlay
                 muted
                 loop
-                playsInline={true}
-                preload="metadata"
+                playsInline
+                webkit-playsinline="true"
+                preload="auto"
                 disablePictureInPicture
                 className="hero-card-short-video"
               />
