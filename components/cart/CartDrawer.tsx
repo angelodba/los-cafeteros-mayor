@@ -155,6 +155,14 @@ export default function CartDrawer() {
 
     const encoded = encodeURIComponent(msg);
     window.open(`https://wa.me/584247087749?text=${encoded}`, '_blank');
+    
+    // Clear the cart and close drawer so the app is fresh when they return from WhatsApp
+    setTimeout(() => {
+      onClearCart();
+      setBillingData({ restName: '', rif: '', zone: '', phone: '' });
+      setNotes('');
+      onClose();
+    }, 500);
   };
 
   return (

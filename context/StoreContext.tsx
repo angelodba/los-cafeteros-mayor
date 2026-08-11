@@ -35,28 +35,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   const [billingData, setBillingData] = useState<{ restName: string; rif: string; zone: string; phone?: string }>({ restName: '', rif: '', zone: '', phone: '' });
-  const [isBillingLoaded, setIsBillingLoaded] = useState(false);
-
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('loscafeteros_billing');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (parsed && typeof parsed === 'object') {
-            setBillingData({ restName: '', rif: '', zone: '', phone: '', ...parsed });
-          }
-        } catch (e) {}
-      }
-    }
-    setIsBillingLoaded(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (isBillingLoaded && typeof window !== 'undefined') {
-      localStorage.setItem('loscafeteros_billing', JSON.stringify(billingData));
-    }
-  }, [billingData, isBillingLoaded]);
 
   const value = useMemo(() => ({
     bcvRate,
