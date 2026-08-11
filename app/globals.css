@@ -2698,3 +2698,40 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* V8.1 Banners */
 .ticker-bar{width:100%;background:#0D0D0D;color:#FDFCF7;padding:10px 0;overflow:hidden;position:relative;display:flex;white-space:nowrap;border-bottom:2px solid var(--color-verde-lima);box-shadow:0 4px 20px rgba(0,0,0,0.15);}.ticker-track{display:flex;align-items:center;animation:ticker 25s linear infinite;}.ticker-item{display:flex;align-items:center;gap:8px;padding:0 20px;font-size:0.9rem;font-weight:500;}.ticker-item strong{color:var(--color-verde-lima);}.ticker-item .icon-green{color:var(--color-verde-hoja);}.ticker-item .icon-yellow{color:var(--color-amarillo-naranja);}.ticker-sep{color:rgba(255,255,255,0.2);font-weight:800;}@keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}.pricing-mode-banner{display:flex;align-items:center;gap:16px;background:rgba(101,166,26,0.08);border:1px solid var(--color-verde-hoja);border-left:6px solid var(--color-verde-hoja);padding:24px;margin:30px 0;border-radius:8px;}.mode-banner-icon{background:var(--color-verde-hoja);color:#fff;padding:12px;border-radius:50%;display:flex;align-items:center;justify-content:center;}.pricing-mode-banner h3{margin-bottom:4px;font-size:1.2rem;color:var(--color-verde-hoja-dark);}.pricing-mode-banner p{margin:0;font-size:0.95rem;color:var(--color-negro-texto);opacity:0.85;}
+
+/* ============================================================
+   TOAST NOTIFICATION (CART DRAWER)
+   ============================================================ */
+.cart-toast-notification {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-rojo-pimenton);
+    color: #FFFFFF;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-family: var(--font-jakarta), sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 10px 30px rgba(216, 30, 19, 0.4);
+    z-index: 1000;
+    width: max-content;
+    max-width: 90%;
+    animation: toast-slide-down 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes toast-slide-down {
+    0% {
+        opacity: 0;
+        top: 20px;
+    }
+    100% {
+        opacity: 1;
+        top: 60px;
+    }
+}
+

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingCart, X, Scale, ShoppingBag, ClipboardList, Send, Trash2, Tag, Percent } from 'lucide-react';
+import { ShoppingCart, X, Trash2, ShoppingBag, Send, Percent, Scale, AlertCircle } from 'lucide-react';
 import QuantitySelector from '../catalog/QuantitySelector';
 import { useStore } from '../../context/StoreContext';
 import { createQuoteAction } from '../../app/actions/orders';
@@ -29,8 +29,7 @@ export default function CartDrawer() {
 
   const [checkoutStep, setCheckoutStep] = useState(1);
   const [notes, setNotes] = useState('');
-
-
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Lock body scroll when cart drawer is active on mobile devices
   useEffect(() => {
@@ -79,12 +78,14 @@ export default function CartDrawer() {
     const deliveryZone = billingData?.zone?.trim();
 
     if (cart.length === 0) {
-      alert('Tu carrito está vacío. Agrega productos antes de cotizar.');
+      setToastMessage('Tu carrito está vacío. Agrega productos antes de cotizar.');
+      setTimeout(() => setToastMessage(null), 3500);
       return;
     }
 
     if (!customerName || !deliveryZone) {
-      alert('Por favor completa los Datos del Cliente y la Zona de Despacho antes de enviar la cotización.');
+      setToastMessage('⚠️ Rellena tus Datos de Cliente y Punto de Despacho para cotizar.');
+      setTimeout(() => setToastMessage(null), 3500);
       return;
     }
 
@@ -167,6 +168,13 @@ export default function CartDrawer() {
             <X size={17} />
           </button>
         </div>
+        
+        {toastMessage && (
+          <div className="cart-toast-notification">
+            <AlertCircle size={16} />
+            <span>{toastMessage}</span>
+          </div>
+        )}
 
         <div className="drawer-body">
           {/* Caja de Progreso de Descuento por Volumen */}
@@ -345,17 +353,10 @@ export default function CartDrawer() {
               </div>
             </div>
 
-            {(!billingData?.restName?.trim() || !billingData?.zone?.trim()) ? (
-              <div style={{ background: 'rgba(216,30,19,0.1)', color: '#D81E13', padding: '10px 14px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600, marginBottom: '12px', textAlign: 'center' }}>
-                ⚠️ Rellena tus Datos de Cliente y Punto de Despacho arriba para poder enviar la cotización.
-              </div>
-            ) : null}
             <button 
               type="button" 
               className="btn btn-whatsapp btn-block" 
               onClick={handleSendWhatsapp}
-              disabled={!billingData?.restName?.trim() || !billingData?.zone?.trim()}
-              style={{ opacity: (!billingData?.restName?.trim() || !billingData?.zone?.trim()) ? 0.5 : 1 }}
             >
               <Send size={18} />
               <span>Enviar Cotización a WhatsApp</span>
