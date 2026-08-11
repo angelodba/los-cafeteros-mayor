@@ -47,20 +47,29 @@ export function useCart() {
   }, []);
 
   const updateQty = useCallback((productId: string, newQty: number | string) => {
-    const qtyNum = parseFloat(newQty as string) || 0;
-    if (qtyNum <= 0) {
-      setCart((prevCart: any[]) => prevCart.filter((i) => i.product.id !== productId));
-    } else {
+    if (newQty === '') {
       setCart((prevCart: any[]) =>
         prevCart.map((item) =>
-          item.product.id === productId ? { ...item, qty: qtyNum } : item
+          String(item.product.id) === String(productId) ? { ...item, qty: '' } : item
+        )
+      );
+      return;
+    }
+    
+    const qtyNum = parseFloat(newQty as string);
+    if (!isNaN(qtyNum) && qtyNum <= 0) {
+      setCart((prevCart: any[]) => prevCart.filter((i) => String(i.product.id) !== String(productId)));
+    } else if (!isNaN(qtyNum)) {
+      setCart((prevCart: any[]) =>
+        prevCart.map((item) =>
+          String(item.product.id) === String(productId) ? { ...item, qty: qtyNum } : item
         )
       );
     }
   }, []);
 
   const removeItem = useCallback((productId: string) => {
-    setCart((prevCart: any[]) => prevCart.filter((i) => i.product.id !== productId));
+    setCart((prevCart: any[]) => prevCart.filter((i) => String(i.product.id) !== String(productId)));
   }, []);
 
   const clearCart = useCallback(() => {

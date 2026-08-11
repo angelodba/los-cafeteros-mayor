@@ -137,14 +137,19 @@ export default function CartDrawer() {
       totalUsd: totalUsd,
       totalBs: totalBs,
       bcvRate: activeBcvRate,
-      items: cart.map((item: any) => ({
-        id: item.product.id,
-        name: item.product.name,
-        qty: item.qty,
-        unitPrice: (item.qty >= (item.product.minWholesaleQty || 30)) ? item.product.priceMayor : item.product.priceDetal,
-        subtotal: ((item.qty >= (item.product.minWholesaleQty || 30)) ? item.product.priceMayor : item.product.priceDetal) * item.qty,
-        isWholesale: item.qty >= (item.product.minWholesaleQty || 30)
-      })),
+      items: cart.map((item: any) => {
+        const parsedQty = parseFloat(item.qty) || 0;
+        const minWq = item.product.minWholesaleQty || 30;
+        const unitPrice = parsedQty >= minWq ? item.product.priceMayor : item.product.priceDetal;
+        return {
+          id: item.product.id,
+          name: item.product.name,
+          qty: parsedQty,
+          unitPrice: unitPrice,
+          subtotal: unitPrice * parsedQty,
+          isWholesale: parsedQty >= minWq
+        };
+      }),
       notes: notes
     }).catch(err => console.warn('Mock Supabase failed silently:', err));
 
@@ -246,9 +251,9 @@ export default function CartDrawer() {
 
                       <div className="item-card-bottom">
                         <QuantitySelector
-                          value={qty}
+                          value={item.qty}
                           onChange={(newQty) => {
-                            if (newQty <= 0) onRemoveItem(prod.id);
+                            if (newQty !== '' && newQty <= 0) onRemoveItem(prod.id);
                             else onUpdateQty(prod.id, newQty);
                           }}
                           unit={prod.unit}
