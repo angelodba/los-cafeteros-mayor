@@ -75,10 +75,18 @@ export default function CartDrawer() {
 
   // Generador de Cotizaciones por WhatsApp automatizado con Markdown estructurado
   const handleSendWhatsapp = () => {
-    if (cart.length === 0) return;
+    const customerName = billingData?.restName?.trim();
+    const deliveryZone = billingData?.zone?.trim();
 
-    const customerName = billingData?.restName?.trim() || 'Cliente / Restaurante';
-    const deliveryZone = billingData?.zone?.trim() || 'Caracas (A convenir)';
+    if (cart.length === 0) {
+      alert('Tu carrito está vacío. Agrega productos antes de cotizar.');
+      return;
+    }
+
+    if (!customerName || !deliveryZone) {
+      alert('Por favor completa los Datos del Cliente y la Zona de Despacho antes de enviar la cotización.');
+      return;
+    }
 
     const now = new Date();
     const dateStr = now.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -337,7 +345,18 @@ export default function CartDrawer() {
               </div>
             </div>
 
-            <button className="btn btn-whatsapp btn-block" onClick={handleSendWhatsapp}>
+            {(!billingData?.restName?.trim() || !billingData?.zone?.trim()) ? (
+              <div style={{ background: 'rgba(216,30,19,0.1)', color: '#D81E13', padding: '10px 14px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600, marginBottom: '12px', textAlign: 'center' }}>
+                ⚠️ Rellena tus Datos de Cliente y Punto de Despacho arriba para poder enviar la cotización.
+              </div>
+            ) : null}
+            <button 
+              type="button" 
+              className="btn btn-whatsapp btn-block" 
+              onClick={handleSendWhatsapp}
+              disabled={!billingData?.restName?.trim() || !billingData?.zone?.trim()}
+              style={{ opacity: (!billingData?.restName?.trim() || !billingData?.zone?.trim()) ? 0.5 : 1 }}
+            >
               <Send size={18} />
               <span>Enviar Cotización a WhatsApp</span>
             </button>
