@@ -95,6 +95,11 @@ export default function QuantitySelector({
             min={min}
             max={max}
             onChange={handleInputChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+              }
+            }}
             disabled={disabled}
             placeholder="1"
           />

@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { MapPin, ShoppingBag } from 'lucide-react';
-import { useStore } from '../../context/StoreContext';
+import { useCartStore } from '../../store/useCartStore';
+import { useHasHydrated } from '../../hooks/useHasHydrated';
 
 export default function Header() {
-  const { cart, setIsCartOpen, setIsLocationModalOpen } = useStore();
+  const { cart, setIsCartOpen, setIsLocationModalOpen } = useCartStore();
   const cartCount = cart.length;
+  const hasHydrated = useHasHydrated();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -44,7 +46,11 @@ export default function Header() {
           <button className="btn btn-cart" onClick={() => setIsCartOpen(true)}>
             <ShoppingBag size={16} />
             <span>Cotización</span>
-            <span className="cart-badge">{cartCount}</span>
+            {hasHydrated ? (
+              <span className="cart-badge">{cartCount}</span>
+            ) : (
+              <span className="cart-badge" style={{ opacity: 0.5 }}>0</span>
+            )}
           </button>
         </div>
       </div>

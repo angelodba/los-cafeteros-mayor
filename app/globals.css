@@ -2645,6 +2645,52 @@ img { max-width: 100%; height: auto; display: block; }
     color: #000;
 }
 
+/* --- Main Footer Styles (Solid Black) --- */
+.main-footer {
+    background-color: #0D0D0D !important;
+    color: #FDFCF7 !important;
+    padding: 60px 0 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 10;
+}
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr;
+    gap: 40px;
+}
+.footer-desc {
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+.footer-col h4 {
+    color: #B7F34B !important;
+    margin-bottom: 20px;
+}
+.footer-links {
+    list-style: none;
+}
+.footer-links li {
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.8);
+}
+.footer-links a:hover {
+    color: #B7F34B;
+}
+.footer-badges {
+    display: flex;
+    gap: 10px;
+}
+.f-badge {
+    background: rgba(101, 166, 26, 0.2);
+    border: 1px solid #65A61A;
+    color: #B7F34B;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
 
 
 

@@ -20,6 +20,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
+  metadataBase: new URL('https://los-cafeteros-mayor.vercel.app'),
   title: 'LOS CAFETEROS | Feria de Hortalizas en Caracas - Precios al Mayor y Detal',
   description: 'Hortalizas frescas de Mérida a la cocina de tu restaurante. Precios al mayor y detal. Despacho en Caracas.',
 };

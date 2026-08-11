@@ -28,8 +28,12 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
   const savingPercent = Math.round(((product.priceDetal - product.priceMayor) / product.priceDetal) * 100);
 
   const handleAdd = () => {
-    const qtyToAdd = parseFloat(qtyInput as string) || 1;
-    if (qtyToAdd > 0) {
+    let qtyToAdd = parseFloat(qtyInput as string) || 1;
+    // Clamp values (Min 1, Max availableQty)
+    if (qtyToAdd < 1) qtyToAdd = 1;
+    if (qtyToAdd > availableQty) qtyToAdd = availableQty;
+
+    if (qtyToAdd > 0 && !isOutOfStock) {
       onAddToCart(product.id, qtyToAdd);
     }
   };
