@@ -41,7 +41,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('loscafeteros_billing');
       if (saved) {
-        try { setBillingData(JSON.parse(saved)); } catch (e) {}
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object') {
+            setBillingData({ restName: '', rif: '', zone: '', phone: '', ...parsed });
+          }
+        } catch (e) {}
       }
     }
     setIsBillingLoaded(true);
