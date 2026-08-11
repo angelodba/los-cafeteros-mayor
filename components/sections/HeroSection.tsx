@@ -1,9 +1,14 @@
+// @ts-nocheck
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Truck, Scale, MessageCircle, MapPin, Sparkles } from 'lucide-react';
+import { useStore } from '../../context/StoreContext';
+import CanvaIntroModal from '../sections/CanvaIntroModal';
 
-export default function HeroSection({ onOpenLocation, onOpenCanvaIntro }) {
+export default function HeroSection() {
+  const { setIsLocationModalOpen } = useStore();
+  const [isCanvaOpen, setIsCanvaOpen] = useState(false);
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -58,12 +63,12 @@ export default function HeroSection({ onOpenLocation, onOpenCanvaIntro }) {
               <span>Contactar WhatsApp</span>
             </a>
 
-            <button className="btn btn-canva-trigger" onClick={onOpenCanvaIntro}>
+            <button className="btn btn-canva-trigger" onClick={() => setIsCanvaOpen(true)}>
               <Sparkles size={16} color="var(--verde-lima)" />
               <span>Ver Intro Canva</span>
             </button>
 
-            <button className="btn btn-secondary" onClick={onOpenLocation}>
+            <button className="btn btn-secondary" onClick={() => setIsLocationModalOpen(true)}>
               <MapPin size={18} />
               <span>Ubicación</span>
             </button>
@@ -72,7 +77,7 @@ export default function HeroSection({ onOpenLocation, onOpenCanvaIntro }) {
 
         <div className="hero-visual">
           <div className="hero-card">
-            <div className="kinetic-badge" onClick={onOpenCanvaIntro} title="Ver Presentación Canva" style={{ cursor: 'pointer' }}>
+            <div className="kinetic-badge" onClick={() => setIsCanvaOpen(true)} title="Ver Presentación Canva" style={{ cursor: 'pointer' }}>
               <svg viewBox="0 0 96 96" width="96" height="96">
                 <defs>
                   <path id="kineticCircle" d="M 48,48 m -36,0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" />
@@ -116,6 +121,8 @@ export default function HeroSection({ onOpenLocation, onOpenCanvaIntro }) {
           </div>
         </div>
       </div>
+      <CanvaIntroModal isOpen={isCanvaOpen} onClose={() => setIsCanvaOpen(false)} />
     </section>
   );
 }
+

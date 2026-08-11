@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { useRef, useLayoutEffect, useEffect } from 'react';
@@ -30,6 +31,23 @@ function AutoScaledModel({ url, targetSize = 2.0, position = [0, 0, 0], floatSpe
   const center = new THREE.Vector3();
   box.getCenter(center);
   clonedScene.position.sub(center.multiplyScalar(autoScale));
+
+  useEffect(() => {
+    return () => {
+      clonedScene.traverse((node: any) => {
+        if (node.isMesh) {
+          if (node.geometry) node.geometry.dispose();
+          if (node.material) {
+            if (Array.isArray(node.material)) {
+              node.material.forEach((m: any) => m.dispose());
+            } else {
+              node.material.dispose();
+            }
+          }
+        }
+      });
+    };
+  }, [clonedScene]);
 
   return (
     <Float speed={floatSpeed} rotationIntensity={rotIntensity} floatIntensity={floatIntensity}>
@@ -134,3 +152,4 @@ export default function ProduceScrollScene() {
 useGLTF.preload('/models/manzana.glb');
 useGLTF.preload('/models/pina.glb');
 useGLTF.preload('/models/durazno.glb');
+

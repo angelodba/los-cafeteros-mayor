@@ -1,0 +1,36 @@
+/* ==========================================================================
+   LOS CAFETEROS — FERIA DE HORTALIZAS CARACAS
+   Estética Awwwards / Swiss Brutalist Design System (Tokens)
+   ========================================================================== */
+
+:root {
+    /* Brand Colors */
+    --verde-hoja: #65A61A;
+    --verde-hoja-dark: #4e8213;
+    --verde-lima: #B7F34B;
+    --rojo-pimenton: #D81E13;
+    --amarillo-naranja: #F5A611;
+    --marron-tierra: #7A4222;
+    --fondo-crema: #F2EEDC;
+    --negro-texto: #0D0D0D;
+
+    /* Alpha Variants */
+    --verde-hoja-alpha: rgba(101, 166, 26, 0.15);
+    --verde-lima-alpha: rgba(183, 243, 75, 0.2);
+    --rojo-pimenton-alpha: rgba(216, 30, 19, 0.1);
+    --crema-card: #FDFCF7;
+
+    /* Layout & Effects */
+    --border-light: rgba(122, 66, 34, 0.10);
+    --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.06);
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.07);
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --radius-full: 999px;
+    --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Tech Frame */
+    --frame-color: rgba(101, 166, 26, 0.35);
+    --frame-text: rgba(13, 13, 13, 0.3);
+}

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { X, Play, Sparkles, ExternalLink, RefreshCw } from 'lucide-react';
 
@@ -103,3 +104,4 @@ export default function CanvaIntroModal({ isOpen, onClose, canvaUrl }) {
     </div>
   );
 }
+

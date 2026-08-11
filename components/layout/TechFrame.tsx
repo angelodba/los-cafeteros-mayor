@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useStore } from '../../context/StoreContext';
 
-export default function TechFrame({ bcvRate }) {
+export default function TechFrame() {
+  const { bcvRate } = useStore();
   const [timeStr, setTimeStr] = useState('--:-- HRS');
 
   useEffect(() => {

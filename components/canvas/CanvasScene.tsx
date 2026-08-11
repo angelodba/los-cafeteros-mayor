@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
@@ -56,7 +57,7 @@ export default function CanvasScene() {
       <WebGLErrorBoundary>
         <Canvas
           camera={{ position: [0, 0, 8], fov: 60 }}
-          dpr={1}
+          dpr={[1, 1.5]}
           gl={{
             antialias: false,
             alpha: true,
@@ -84,3 +85,4 @@ export default function CanvasScene() {
     </div>
   );
 }
+

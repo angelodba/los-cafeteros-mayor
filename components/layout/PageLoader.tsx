@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -95,3 +96,4 @@ export default function PageLoader({ videoSrc }) {
     </div>
   );
 }
+

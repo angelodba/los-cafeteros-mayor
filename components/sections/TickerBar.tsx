@@ -1,8 +1,10 @@
 'use client';
 
 import { CheckCircle2, Sparkles, Building2, Truck } from 'lucide-react';
+import { useStore } from '../../context/StoreContext';
 
-export default function TickerBar({ bcvRate }) {
+export default function TickerBar() {
+  const { bcvRate } = useStore();
   const formattedRate = bcvRate
     ? `Bs ${bcvRate.toLocaleString('es-VE', { minimumFractionDigits: 2 })} / $`
     : 'Cargando en vivo...';

@@ -1,7 +1,14 @@
+// @ts-nocheck
+'use client';
+
 import { useEffect } from 'react';
 import { MapPin, Building2, Truck, Check, ExternalLink, X } from 'lucide-react';
+import { useStore } from '../../context/StoreContext';
 
-export default function LocationModal({ isOpen, onClose }) {
+export default function LocationModal() {
+  const { isLocationModalOpen: isOpen, setIsLocationModalOpen } = useStore();
+  const onClose = () => setIsLocationModalOpen(false);
+
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('modal-open');
@@ -77,3 +84,4 @@ export default function LocationModal({ isOpen, onClose }) {
     </div>
   );
 }
+

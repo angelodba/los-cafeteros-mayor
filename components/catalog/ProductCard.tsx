@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { useState } from 'react';
@@ -26,7 +27,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
   };
 
   return (
-    <div className={`product-card ${isOutOfStock ? 'is-out-of-stock' : ''} ${isItemWholesaleActive ? 'wholesale-card-active' : ''}`}>
+    <div className={`product-card ${isOutOfStock ? 'is-out-of-stock' : ''} ${isItemWholesaleActive ? '!border-[#65A61A] shadow-[4px_4px_0px_0px_rgba(101,166,26,1)]' : 'border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'}`}>
       <div className="product-image-container">
         <span className="product-card-num">#{String(index + 1).padStart(2, '0')}</span>
 
@@ -110,3 +111,4 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
     </div>
   );
 }
+

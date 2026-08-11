@@ -1,9 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { MapPin, ShoppingBag } from 'lucide-react';
+import { useStore } from '../../context/StoreContext';
 
-export default function Header({ onOpenLocation, onOpenCart, cartCount }) {
+export default function Header() {
+  const { cart, setIsCartOpen, setIsLocationModalOpen } = useStore();
+  const cartCount = cart.length;
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -18,7 +22,14 @@ export default function Header({ onOpenLocation, onOpenCart, cartCount }) {
     <header className={`main-header ${scrolled ? 'scrolled' : ''}`}>
       <div className="container header-container">
         <a href="#" className="logo-wrapper">
-          <img src="/logo-cropped.png" alt="LOS CAFETEROS - Feria de Hortalizas" className="original-brand-logo" />
+          <Image 
+            src="/logo-cropped.png" 
+            alt="LOS CAFETEROS - Feria de Hortalizas" 
+            className="original-brand-logo" 
+            width={702} 
+            height={380} 
+            priority
+          />
           <div className="header-sys-tag">
             <span>MAYORISTA · DETAL</span>
             <span>CARACAS · VE</span>
@@ -26,11 +37,11 @@ export default function Header({ onOpenLocation, onOpenCart, cartCount }) {
         </a>
 
         <div className="header-actions">
-          <button className="btn btn-outline" onClick={onOpenLocation}>
+          <button className="btn btn-outline" onClick={() => setIsLocationModalOpen(true)}>
             <MapPin size={16} />
             <span>Ubicación</span>
           </button>
-          <button className="btn btn-cart" onClick={onOpenCart}>
+          <button className="btn btn-cart" onClick={() => setIsCartOpen(true)}>
             <ShoppingBag size={16} />
             <span>Cotización</span>
             <span className="cart-badge">{cartCount}</span>
