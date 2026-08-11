@@ -1,13 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* ==========================================================================
    LOS CAFETEROS — FERIA DE HORTALIZAS CARACAS
    Estética Awwwards / Swiss Brutalist Design System (Next.js + R3F)
    ========================================================================== */
 
-@import './styles/tokens.css';
+@theme {
+  --color-verde-hoja: #65A61A;
+  --color-verde-hoja-dark: #4e8213;
+  --color-verde-lima: #B7F34B;
+  --color-rojo-pimenton: #D81E13;
+  --color-amarillo-naranja: #F5A611;
+  --color-marron-tierra: #7A4222;
+  --color-fondo-crema: #F2EEDC;
+  --color-negro-texto: #0D0D0D;
+  --color-crema-card: #FDFCF7;
+  --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.07);
+}
 
 /* --- Reset Global --- */
 *, *::before, *::after {

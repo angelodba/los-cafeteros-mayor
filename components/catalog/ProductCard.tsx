@@ -1,26 +1,34 @@
-// @ts-nocheck
 'use client';
 
 import { useState } from 'react';
 import { Plus, CheckCircle2, AlertTriangle, XCircle, Slash, ShoppingBag } from 'lucide-react';
 import QuantitySelector from './QuantitySelector';
+import { Product } from '../../types/catalog';
 
-export default function ProductCard({ product, index, cartItem, stockData, onAddToCart }) {
-  const [qtyInput, setQtyInput] = useState(1);
+interface ProductCardProps {
+  product: Product;
+  index: number;
+  cartItem?: any;
+  stockData: any;
+  onAddToCart: (id: string, qty: number) => void;
+}
+
+export default function ProductCard({ product, index, cartItem, stockData, onAddToCart }: ProductCardProps) {
+  const [qtyInput, setQtyInput] = useState<number | string>(1);
 
   const itemStock = stockData[product.id] || { stockQty: 100, minAlert: 15, status: 'disponible' };
   const availableQty = itemStock.stockQty;
   const isOutOfStock = availableQty <= 0;
   const isLowStock = !isOutOfStock && availableQty <= itemStock.minAlert;
 
-  const effectiveQty = (cartItem ? cartItem.qty : 0) + (parseFloat(qtyInput) || 0);
+  const effectiveQty = (cartItem ? cartItem.qty : 0) + (parseFloat(qtyInput as string) || 0);
   const minWholesaleQty = product.minWholesaleQty || 30;
   const isItemWholesaleActive = effectiveQty >= minWholesaleQty;
   const currentPrice = isItemWholesaleActive ? product.priceMayor : product.priceDetal;
   const savingPercent = Math.round(((product.priceDetal - product.priceMayor) / product.priceDetal) * 100);
 
   const handleAdd = () => {
-    const qtyToAdd = parseFloat(qtyInput) || 1;
+    const qtyToAdd = parseFloat(qtyInput as string) || 1;
     if (qtyToAdd > 0) {
       onAddToCart(product.id, qtyToAdd);
     }
@@ -87,7 +95,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
         <div className="product-actions-v2">
           <QuantitySelector
             value={qtyInput}
-            onChange={(val) => setQtyInput(val)}
+            onChange={(val: any) => setQtyInput(val)}
             unit={product.unit}
             min={1}
             max={availableQty}

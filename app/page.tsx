@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import React from 'react';
 import Image from 'next/image';
 
 import StoreClientWrapper from '../components/layout/StoreClientWrapper';
@@ -8,8 +9,10 @@ import PageLoader from '../components/layout/PageLoader';
 import HeroSection from '../components/sections/HeroSection';
 import TickerBar from '../components/sections/TickerBar';
 import CatalogSection from '../components/catalog/CatalogSection';
-import CartDrawer from '../components/cart/CartDrawer';
-import LocationModal from '../components/modals/LocationModal';
+import ProductSchema from '../components/seo/ProductSchema';
+
+const CartDrawer = dynamic(() => import('../components/cart/CartDrawer'));
+const LocationModal = dynamic(() => import('../components/modals/LocationModal'));
 
 // Metadata SEO Dinámico (Server Component)
 export const metadata = {
@@ -27,8 +30,9 @@ export const metadata = {
 export default function Home() {
   return (
     <StoreClientWrapper>
+      <ProductSchema />
       <div id="main-scroll-container">
-        <PageLoader />
+        <PageLoader videoSrc="" />
         <div id="grain-overlay" aria-hidden="true"></div>
         <TechFrame />
 
@@ -65,7 +69,7 @@ export default function Home() {
                     WhatsApp Directo Ventas
                   </a>
                 </li>
-                <li>ventas@loscafeterosferia.ve</li>
+                <li><a href="mailto:urbinaiglesia2020@gmail.com">urbinaiglesia2020@gmail.com</a></li>
                 <li>
                   <a href="https://maps.app.goo.gl/JGqm7WzSMJofa2Ah6" target="_blank" rel="noopener noreferrer">
                     La Urbina, Caracas (Ver Ubicación)
