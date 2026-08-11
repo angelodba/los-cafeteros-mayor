@@ -81,7 +81,7 @@ export default function CatalogSection() {
             <div className="section-eyebrow-line"></div>
           </div>
           <h2 className="section-title">Nuestras Hortalizas<br />&amp; Productos</h2>
-          <p className="section-subtitle">Selecciona los rubros para armar la cotizaciÃ³n de tu pedido en vivo</p>
+          <p className="section-subtitle">Selecciona los rubros para armar la cotización de tu pedido en vivo</p>
         </div>
 
         <div className="category-tabs">
@@ -91,7 +91,7 @@ export default function CatalogSection() {
               className={`tab-btn ${activeCategory === cat ? 'active' : ''}`}
               onClick={() => setActiveCategory(cat)}
             >
-              {cat === 'all' ? 'Todos' : cat === 'alinos' ? 'AliÃ±os & Ajos' : cat === 'hojas' ? 'Hojas & Hortalizas' : cat}
+              {cat === 'all' ? 'Todos' : cat === 'alinos' ? 'Aliños & Ajos' : cat === 'hojas' ? 'Hojas & Hortalizas' : cat}
             </button>
           ))}
         </div>
@@ -106,7 +106,7 @@ export default function CatalogSection() {
             type="text"
             id="product-search-input"
             className="search-bar-input"
-            placeholder="Buscar por nombre, categorÃ­a (ej: papa, pimentÃ³n, aliÃ±os)..."
+            placeholder="Buscar por nombre, categoría (ej: papa, pimentón, aliños)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             autoComplete="off"
@@ -147,8 +147,8 @@ export default function CatalogSection() {
           <Scale size={20} />
         </div>
         <div>
-          <h3>Descuentos AutomÃ¡ticos Al Mayor a partir de 30 kg</h3>
-          <p>Arma tu cotizaciÃ³n: al alcanzar 30 kg por rubro obtienes Precios Al Mayor automÃ¡ticamente.</p>
+          <h3>Descuentos Automáticos Al Mayor a partir de 30 kg</h3>
+          <p>Arma tu cotización: al alcanzar 30 kg por rubro obtienes Precios Al Mayor automáticamente.</p>
         </div>
       </div>
 
@@ -158,9 +158,9 @@ export default function CatalogSection() {
             <SearchX size={32} />
           </div>
           <h3>No encontramos hortalizas para &quot;{searchQuery}&quot;</h3>
-          <p>Prueba buscando sin tildes, con otro tÃ©rmino o limpia los filtros.</p>
+          <p>Prueba buscando sin tildes, con otro término o limpia los filtros.</p>
           <button className="btn btn-primary" onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}>
-            Ver todo el catÃ¡logo
+            Ver todo el catálogo
           </button>
         </div>
       ) : (
