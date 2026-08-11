@@ -24,7 +24,7 @@ export default function CartDrawer() {
   const onClearCart = () => clearCart();
 
   const handleBillingChange = (field: string, value: string) => {
-    setBillingData({ ...billingData, [field]: value });
+    setBillingData((prev) => ({ ...prev, [field]: value }));
   };
 
   const [checkoutStep, setCheckoutStep] = useState(1);

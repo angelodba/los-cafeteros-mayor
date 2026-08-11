@@ -13,7 +13,7 @@ type StoreContextType = {
   cart: any;
   cartCount: number;
   billingData: { restName: string; rif: string; zone: string; phone?: string };
-  setBillingData: (data: { restName: string; rif: string; zone: string; phone?: string }) => void;
+  setBillingData: React.Dispatch<React.SetStateAction<{ restName: string; rif: string; zone: string; phone?: string }>>;
   addToCart: any;
   updateCartItemQuantity: any;
   removeFromCart: any;

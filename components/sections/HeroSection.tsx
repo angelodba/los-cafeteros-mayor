@@ -80,7 +80,6 @@ export default function HeroSection() {
                 muted
                 loop
                 playsInline
-                webkit-playsinline="true"
                 preload="auto"
                 disablePictureInPicture
                 className="hero-card-short-video"
