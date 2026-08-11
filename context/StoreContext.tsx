@@ -32,24 +32,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const { cart, cartCount, addToCart, updateQty, removeItem, clearCart } = useCart();
   
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(true);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
-  const [billingData, setBillingData] = useState(() => {
+  const [billingData, setBillingData] = useState<{ restName: string; rif: string; zone: string; phone?: string }>({ restName: '', rif: '', zone: '', phone: '' });
+  const [isBillingLoaded, setIsBillingLoaded] = useState(false);
+
+  React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('loscafeteros_billing');
       if (saved) {
-        try { return JSON.parse(saved); } catch (e) {}
+        try { setBillingData(JSON.parse(saved)); } catch (e) {}
       }
     }
-    return { restName: '', rif: '', zone: '', phone: '' };
-  });
+    setIsBillingLoaded(true);
+  }, []);
 
-  // useEffect para sincronizar billingData
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (isBillingLoaded && typeof window !== 'undefined') {
       localStorage.setItem('loscafeteros_billing', JSON.stringify(billingData));
     }
-  }, [billingData]);
+  }, [billingData, isBillingLoaded]);
 
   const value = useMemo(() => ({
     bcvRate,

@@ -11,9 +11,10 @@ interface ProductCardProps {
   cartItem?: any;
   stockData: any;
   onAddToCart: (id: string, qty: number) => void;
+  onOpenCart?: () => void;
 }
 
-export default function ProductCard({ product, index, cartItem, stockData, onAddToCart }: ProductCardProps) {
+export default function ProductCard({ product, index, cartItem, stockData, onAddToCart, onOpenCart }: ProductCardProps) {
   const [qtyInput, setQtyInput] = useState<number | string>(1);
 
   const itemStock = stockData[product.id] || { stockQty: 100, minAlert: 15, status: 'disponible' };
@@ -35,6 +36,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
 
     if (qtyToAdd > 0 && !isOutOfStock) {
       onAddToCart(product.id, qtyToAdd);
+      if (onOpenCart) onOpenCart();
     }
   };
 
@@ -111,6 +113,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
           />
 
           <button
+            type="button"
             className="btn btn-add-cart-haptic"
             onClick={handleAdd}
             disabled={isOutOfStock}

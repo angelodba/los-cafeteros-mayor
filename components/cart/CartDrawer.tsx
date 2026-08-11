@@ -15,14 +15,13 @@ export default function CartDrawer() {
     bcvRate, 
     updateCartItemQuantity: onUpdateQty, 
     removeFromCart: onRemoveItem,
+    clearCart,
     billingData,
     setBillingData
   } = useStore();
 
   const onClose = () => setIsCartOpen(false);
-  const onClearCart = () => {
-    cart.forEach((item: any) => onRemoveItem(item.product.id));
-  };
+  const onClearCart = () => clearCart();
 
   const handleBillingChange = (field: string, value: string) => {
     setBillingData({ ...billingData, [field]: value });
@@ -77,10 +76,9 @@ export default function CartDrawer() {
   // Generador de Cotizaciones por WhatsApp automatizado con Markdown estructurado
   const handleSendWhatsapp = () => {
     if (cart.length === 0) return;
-    if (!billingData?.restName?.trim() || !billingData?.zone?.trim()) {
-      alert('Por favor completa el Nombre del Restaurante/Cliente y la Zona de Entrega en Caracas.');
-      return;
-    }
+
+    const customerName = billingData?.restName?.trim() || 'Cliente / Restaurante';
+    const deliveryZone = billingData?.zone?.trim() || 'Caracas (A convenir)';
 
     const now = new Date();
     const dateStr = now.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -101,10 +99,10 @@ export default function CartDrawer() {
     let msg = `*NUEVA COTIZACIÓN AL MAYOR - LOS CAFETEROS* 🚛\n\n`;
     msg += `📅 *Fecha:* ${dateStr} | 🕒 *Hora:* ${timeStr}\n\n`;
 
-    msg += `👤 *Cliente:* ${billingData.restName}\n`;
-    if (billingData.rif) msg += `📝 *RIF:* ${billingData.rif}\n`;
-    if (billingData.phone) msg += `📞 *Teléfono:* ${billingData.phone}\n`;
-    msg += `📍 *Zona Despacho:* ${billingData.zone}\n`;
+    msg += `👤 *Cliente:* ${customerName}\n`;
+    if (billingData?.rif) msg += `📝 *RIF:* ${billingData.rif}\n`;
+    if (billingData?.phone) msg += `📞 *Teléfono:* ${billingData.phone}\n`;
+    msg += `📍 *Zona Despacho:* ${deliveryZone}\n`;
     msg += `\n🛒 *DETALLE DEL PEDIDO:*\n${itemsText}\n`;
 
     msg += `-----------------------------------\n`;
@@ -124,10 +122,10 @@ export default function CartDrawer() {
 
     // Trigger Server Action en background (fire and forget)
     createQuoteAction({
-      customerName: billingData.restName,
-      rif: billingData.rif || '',
-      phone: billingData.phone || '',
-      zone: billingData.zone,
+      customerName: customerName,
+      rif: billingData?.rif || '',
+      phone: billingData?.phone || '',
+      zone: deliveryZone,
       totalUsd: totalUsd,
       totalBs: totalBs,
       bcvRate: activeBcvRate,
@@ -246,7 +244,7 @@ export default function CartDrawer() {
                             else onUpdateQty(prod.id, newQty);
                           }}
                           unit={prod.unit}
-                          min={1}
+                          min={0}
                           max={999}
                           showQuickPills={false}
                           isWholesaleActive={isWholesale}

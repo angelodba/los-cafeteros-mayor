@@ -3,12 +3,11 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { MapPin, ShoppingBag } from 'lucide-react';
-import { useCartStore } from '../../store/useCartStore';
+import { useStore } from '../../context/StoreContext';
 import { useHasHydrated } from '../../hooks/useHasHydrated';
 
 export default function Header() {
-  const { cart, setIsCartOpen, setIsLocationModalOpen } = useCartStore();
-  const cartCount = cart.length;
+  const { cartCount, setIsCartOpen, setIsLocationModalOpen } = useStore();
   const hasHydrated = useHasHydrated();
   const [scrolled, setScrolled] = useState(false);
 

@@ -14,7 +14,7 @@ const normalizeText = (text) => {
 };
 
 export default function CatalogSection() {
-  const { cart, stockData, addToCart: onAddToCart } = useStore();
+  const { cart, stockData, addToCart: onAddToCart, setIsCartOpen } = useStore();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -173,6 +173,7 @@ export default function CatalogSection() {
               cartItem={cart.find((i) => i.product.id === product.id)}
               stockData={stockData}
               onAddToCart={onAddToCart}
+              onOpenCart={() => setIsCartOpen(true)}
             />
           ))}
           {visibleProducts.length < filteredProducts.length && (
