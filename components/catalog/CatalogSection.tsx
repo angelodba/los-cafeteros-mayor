@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -8,7 +7,7 @@ import ProductCard from './ProductCard';
 import { PRODUCTS } from '../../data/products';
 import { useStore } from '../../context/StoreContext';
 
-const normalizeText = (text) => {
+const normalizeText = (text: string): string => {
   if (!text) return '';
   return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 };
@@ -29,10 +28,10 @@ export default function CatalogSection() {
 
   // Keyboard shortcut Ctrl+K or /
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        const input = document.getElementById('product-search-input');
+        const input = document.getElementById('product-search-input') as HTMLInputElement | null;
         if (input) input.focus();
       }
     };

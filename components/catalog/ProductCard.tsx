@@ -3,39 +3,47 @@
 import { useState } from 'react';
 import { Plus, CheckCircle2, AlertTriangle, XCircle, Slash, ShoppingBag } from 'lucide-react';
 import QuantitySelector from './QuantitySelector';
-import { Product } from '../../types/catalog';
+import { Product, CartItem, StockData } from '../../types/catalog';
+import { useStore } from '../../context/StoreContext';
 
 interface ProductCardProps {
   product: Product;
   index: number;
-  cartItem?: any;
-  stockData: any;
+  cartItem?: CartItem;
+  stockData: StockData;
   onAddToCart: (id: string, qty: number) => void;
   onOpenCart?: () => void;
 }
 
 export default function ProductCard({ product, index, cartItem, stockData, onAddToCart, onOpenCart }: ProductCardProps) {
   const [qtyInput, setQtyInput] = useState<number | string>(1);
+  const { productUpdates } = useStore();
 
-  const itemStock = stockData[product.id] || { stockQty: 100, minAlert: 15, status: 'disponible' };
+  // Aplicar actualizaciones reactivas del Google Sheet sin mutar el array PRODUCTS
+  const slug = product.name ? product.name.toLowerCase().replace(/\s+/g, '-') : '';
+  const updates = productUpdates[product.id] || productUpdates[slug] || productUpdates[product.name];
+  const prod: Product = updates ? { ...product, ...updates } : product;
+
+  const itemStock = stockData[prod.id] || { stockQty: 100, minAlert: 15, status: 'disponible' };
   const availableQty = itemStock.stockQty;
   const isOutOfStock = availableQty <= 0;
   const isLowStock = !isOutOfStock && availableQty <= itemStock.minAlert;
 
-  const effectiveQty = (cartItem ? cartItem.qty : 0) + (parseFloat(qtyInput as string) || 0);
-  const minWholesaleQty = product.minWholesaleQty || 30;
+  const effectiveQty = (cartItem ? parseFloat(String(cartItem.qty)) || 0 : 0) + (parseFloat(qtyInput as string) || 0);
+  const minWholesaleQty = prod.minWholesaleQty || 30;
   const isItemWholesaleActive = effectiveQty >= minWholesaleQty;
-  const currentPrice = isItemWholesaleActive ? product.priceMayor : product.priceDetal;
-  const savingPercent = Math.round(((product.priceDetal - product.priceMayor) / product.priceDetal) * 100);
+  const currentPrice = isItemWholesaleActive ? prod.priceMayor : prod.priceDetal;
+  const savingPercent = prod.priceDetal > 0
+    ? Math.round(((prod.priceDetal - prod.priceMayor) / prod.priceDetal) * 100)
+    : 0;
 
   const handleAdd = () => {
     let qtyToAdd = parseFloat(qtyInput as string) || 1;
-    // Clamp values (Min 1, Max availableQty)
     if (qtyToAdd < 1) qtyToAdd = 1;
-    if (qtyToAdd > availableQty) qtyToAdd = availableQty;
+    if (availableQty > 0 && qtyToAdd > availableQty) qtyToAdd = availableQty;
 
     if (qtyToAdd > 0 && !isOutOfStock) {
-      onAddToCart(product.id, qtyToAdd);
+      onAddToCart(prod.id, qtyToAdd);
       if (onOpenCart) onOpenCart();
     }
   };
@@ -59,18 +67,18 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
           </span>
         )}
 
-        {product.wholesaleNote && (
+        {prod.wholesaleNote && (
           <span className="wholesale-cesta-tag">
-            📦 {product.wholesaleNote}
+            📦 {prod.wholesaleNote}
           </span>
         )}
 
-        <div className="product-emoji">{product.emoji}</div>
+        <div className="product-emoji">{prod.emoji}</div>
       </div>
 
       <div className="product-details">
-        <span className="product-category-tag">{product.highlight}</span>
-        <h3 className="product-title">{product.name}</h3>
+        <span className="product-category-tag">{prod.highlight}</span>
+        <h3 className="product-title">{prod.name}</h3>
 
         <div className="product-prices">
           <div className="price-main">
@@ -84,14 +92,14 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
           <div className="price-comparison">
             {isItemWholesaleActive ? (
               <>
-                Detal normal: <s>${product.priceDetal.toFixed(2)}</s>{' '}
+                Detal normal: <s>${prod.priceDetal.toFixed(2)}</s>{' '}
                 <span className="price-saving">(-{savingPercent}% Ahorro Mayor)</span>
               </>
             ) : (
               <>
-                Al Mayor (desde {minWholesaleQty} {product.unit}):{' '}
+                Al Mayor (desde {minWholesaleQty} {prod.unit}):{' '}
                 <strong style={{ color: 'var(--verde-hoja)', fontWeight: 800 }}>
-                  ${product.priceMayor.toFixed(2)}
+                  ${prod.priceMayor.toFixed(2)}
                 </strong>
               </>
             )}
@@ -101,8 +109,8 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
         <div className="product-actions-v2">
           <QuantitySelector
             value={qtyInput}
-            onChange={(val: any) => setQtyInput(val)}
-            unit={product.unit}
+            onChange={(val: number | string) => setQtyInput(val)}
+            unit={prod.unit}
             min={1}
             max={availableQty}
             disabled={isOutOfStock}

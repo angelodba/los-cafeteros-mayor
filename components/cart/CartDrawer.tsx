@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,6 +5,8 @@ import { ShoppingCart, X, Scale, ShoppingBag, ClipboardList, Send, Trash2, Tag, 
 import QuantitySelector from '../catalog/QuantitySelector';
 import { useStore } from '../../context/StoreContext';
 import { createQuoteAction } from '../../app/actions/orders';
+import type { CartItem } from '../../types/catalog';
+import { formatUSD, formatVES } from '../../lib/currency';
 
 export default function CartDrawer() {
   const { 
@@ -23,11 +24,10 @@ export default function CartDrawer() {
   const onClose = () => setIsCartOpen(false);
   const onClearCart = () => clearCart();
 
-  const handleBillingChange = (field: string, value: string) => {
+  const handleBillingChange = (field: keyof typeof billingData, value: string) => {
     setBillingData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const [checkoutStep, setCheckoutStep] = useState(1);
   const [notes, setNotes] = useState('');
 
 
@@ -53,9 +53,9 @@ export default function CartDrawer() {
   let totalItemsCount = 0;
   let wholesaleItemsCount = 0;
 
-  cart.forEach((item) => {
+  cart.forEach((item: CartItem) => {
     const prod = item.product;
-    const qty = parseFloat(item.qty) || 0;
+    const qty = parseFloat(String(item.qty)) || 0;
     const minWholesaleQty = prod.minWholesaleQty || 30;
     const isWholesale = qty >= minWholesaleQty;
 
@@ -89,19 +89,21 @@ export default function CartDrawer() {
     }
 
     const now = new Date();
-    const dateStr = now.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const timeStr = now.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', hour12: true });
+    // Zona horaria Venezuela: UTC-4 (America/Caracas)
+    const vzlaOptions: Intl.DateTimeFormatOptions = { timeZone: 'America/Caracas' };
+    const dateStr = now.toLocaleDateString('es-VE', { ...vzlaOptions, day: '2-digit', month: '2-digit', year: 'numeric' });
+    const timeStr = now.toLocaleTimeString('es-VE', { ...vzlaOptions, hour: '2-digit', minute: '2-digit', hour12: true });
 
     let itemsText = '';
-    cart.forEach((item) => {
+    cart.forEach((item: CartItem) => {
       const prod = item.product;
-      const qty = parseFloat(item.qty) || 0;
+      const qty = parseFloat(String(item.qty)) || 0;
       const minWholesaleQty = prod.minWholesaleQty || 30;
       const isWholesale = qty >= minWholesaleQty;
       const unitPrice = isWholesale ? prod.priceMayor : prod.priceDetal;
       const sub = unitPrice * qty;
 
-      itemsText += `• ${qty} ${prod.unit} — *${prod.name}* ${isWholesale ? '(Al Mayor)' : '(Detal)'} ➡️ *$${sub.toFixed(2)}* ($${unitPrice.toFixed(2)}/${prod.unit})\n`;
+      itemsText += `• ${qty} ${prod.unit} — *${prod.name}* ${isWholesale ? '(Al Mayor)' : '(Detal)'} ➡️ *${formatUSD(sub)}* (${formatUSD(unitPrice)}/${prod.unit})\n`;
     });
 
     let msg = `*NUEVA COTIZACIÓN AL MAYOR - LOS CAFETEROS* 🚛\n\n`;
@@ -114,12 +116,12 @@ export default function CartDrawer() {
     msg += `\n🛒 *DETALLE DEL PEDIDO:*\n${itemsText}\n`;
 
     msg += `-----------------------------------\n`;
-    msg += `💵 *Subtotal al Detal:* $${subtotalDetalUsd.toFixed(2)}\n`;
+    msg += `💵 *Subtotal al Detal:* ${formatUSD(subtotalDetalUsd)}\n`;
     if (totalSavingsUsd > 0) {
-      msg += `🌟 *Descuento por Volumen:* -$${totalSavingsUsd.toFixed(2)}\n`;
+      msg += `🌟 *Descuento por Volumen:* -${formatUSD(totalSavingsUsd)}\n`;
     }
-    msg += `💵 *TOTAL ESTIMADO (USD):* *$${totalUsd.toFixed(2)}*\n`;
-    msg += `🇻🇪 *TOTAL BCV (Bs):* *Bs ${totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}* (Tasa: ${activeBcvRate.toFixed(2)})\n`;
+    msg += `💵 *TOTAL ESTIMADO (USD):* *${formatUSD(totalUsd)}*\n`;
+    msg += `🇻🇪 *TOTAL BCV (Bs):* *${formatVES(totalUsd, activeBcvRate)}* (Tasa: ${activeBcvRate.toFixed(2)})\n`;
     msg += `-----------------------------------\n\n`;
 
     if (notes.trim()) {
@@ -137,8 +139,8 @@ export default function CartDrawer() {
       totalUsd: totalUsd,
       totalBs: totalBs,
       bcvRate: activeBcvRate,
-      items: cart.map((item: any) => {
-        const parsedQty = parseFloat(item.qty) || 0;
+      items: cart.map((item: CartItem) => {
+        const parsedQty = parseFloat(String(item.qty)) || 0;
         const minWq = item.product.minWholesaleQty || 30;
         const unitPrice = parsedQty >= minWq ? item.product.priceMayor : item.product.priceDetal;
         return {
@@ -154,15 +156,18 @@ export default function CartDrawer() {
     }).catch(err => console.warn('Mock Supabase failed silently:', err));
 
     const encoded = encodeURIComponent(msg);
-    window.open(`https://wa.me/584247087749?text=${encoded}`, '_blank');
-    
-    // Clear the cart and close drawer so the app is fresh when they return from WhatsApp
+    // SECURITY: Agregar rel="noopener noreferrer" equivalente para window.open
+    const waWindow = window.open(`https://wa.me/584247087749?text=${encoded}`, '_blank', 'noopener,noreferrer');
+    if (waWindow) waWindow.opener = null;
+
+    // Limpiar el carrito después de abrir WhatsApp.
+    // Usamos un timeout breve para asegurar que el navegador procese la apertura primero.
     setTimeout(() => {
       onClearCart();
       setBillingData({ restName: '', rif: '', zone: '', phone: '' });
       setNotes('');
       onClose();
-    }, 500);
+    }, 800);
   };
 
   return (
@@ -223,12 +228,14 @@ export default function CartDrawer() {
               <div className="cart-items-list-v2">
                 {cart.map((item) => {
                   const prod = item.product;
-                  const qty = parseFloat(item.qty) || 0;
+                  const qty = parseFloat(String(item.qty)) || 0;
                   const minWholesaleQty = prod.minWholesaleQty || 30;
                   const isWholesale = qty >= minWholesaleQty;
                   const unitPrice = isWholesale ? prod.priceMayor : prod.priceDetal;
                   const itemSubtotal = unitPrice * qty;
-                  const savingPercent = Math.round(((prod.priceDetal - prod.priceMayor) / prod.priceDetal) * 100);
+                  const savingPercent = prod.priceDetal > 0
+                    ? Math.round(((prod.priceDetal - prod.priceMayor) / prod.priceDetal) * 100)
+                    : 0;
 
                   return (
                     <div key={prod.id} className={`cart-item-card ${isWholesale ? 'item-wholesale-active' : ''}`}>
@@ -261,7 +268,7 @@ export default function CartDrawer() {
                         <QuantitySelector
                           value={item.qty}
                           onChange={(newQty) => {
-                            if (newQty !== '' && newQty <= 0) onRemoveItem(prod.id);
+                            if (newQty !== '' && parseFloat(String(newQty)) <= 0) onRemoveItem(prod.id);
                             else onUpdateQty(prod.id, newQty);
                           }}
                           unit={prod.unit}
@@ -340,21 +347,21 @@ export default function CartDrawer() {
             <div className="summary-rows">
               <div className="summary-row">
                 <span>Subtotal (Precio Detal):</span>
-                <span>${subtotalDetalUsd.toFixed(2)}</span>
+                <span>{formatUSD(subtotalDetalUsd)}</span>
               </div>
               {totalSavingsUsd > 0 && (
                 <div className="summary-row saving-row">
                   <span><Percent size={12} /> Ahorro por Volumen (Al Mayor):</span>
-                  <span className="saving-amount">-${totalSavingsUsd.toFixed(2)}</span>
+                  <span className="saving-amount">-{formatUSD(totalSavingsUsd)}</span>
                 </div>
               )}
               <div className="summary-row total-row">
                 <span>Total Estimado USD:</span>
-                <strong className="total-price-usd">${totalUsd.toFixed(2)}</strong>
+                <strong className="total-price-usd">{formatUSD(totalUsd)}</strong>
               </div>
               <div className="summary-row bcv-row">
                 <span>Ref. en Bs (Tasa Oficial BCV):</span>
-                <span>Bs {totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span>{formatVES(totalUsd, activeBcvRate)}</span>
               </div>
             </div>
 

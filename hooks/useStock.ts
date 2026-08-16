@@ -1,42 +1,50 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PRODUCTS } from '../data/products';
-import { StockData } from '../types/catalog';
+import { StockData, ProductUpdatesMap } from '../types/catalog';
 
 export function useStock() {
   const [stockData, setStockData] = useState<StockData>({});
+  const [productUpdates, setProductUpdates] = useState<ProductUpdatesMap>({});
   const [isStockLoading, setIsStockLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     fetch('/api/stock')
-      .then((res) => res.json())
-      .then((data) => {
+      .then((res) => {
+        if (!res.ok) throw new Error(`Stock API error: ${res.status}`);
+        return res.json();
+      })
+      .then((data: { stockMap?: StockData; productUpdates?: ProductUpdatesMap }) => {
+        if (cancelled) return;
+
         if (data.stockMap) {
           setStockData(data.stockMap);
         }
-        if (data.productUpdates) {
-          PRODUCTS.forEach((prod) => {
-            const slug = prod.name ? prod.name.toLowerCase().replace(/\s+/g, '-') : '';
-            const updates =
-              data.productUpdates[prod.id] ||
-              data.productUpdates[slug] ||
-              data.productUpdates[prod.name];
 
-            if (updates) {
-              if (updates.priceDetal) prod.priceDetal = updates.priceDetal;
-              if (updates.priceMayor) prod.priceMayor = updates.priceMayor;
-              if (updates.wholesaleNote) prod.wholesaleNote = updates.wholesaleNote;
-              if (updates.highlight) prod.highlight = updates.highlight;
-            }
-          });
+        // CORRECCIÓN CRÍTICA: En lugar de mutar el array PRODUCTS directamente
+        // (lo cual NO activa re-renders de React), almacenamos las actualizaciones
+        // como estado reactivo que los componentes leen a través del contexto.
+        if (data.productUpdates) {
+          setProductUpdates(data.productUpdates);
         }
       })
-      .catch((err) => console.error('Error sincronizando stock:', err))
+      .catch((err: Error) => {
+        if (!cancelled) {
+          console.error('[useStock] Error al sincronizar catálogo con Google Sheets:', err.message);
+        }
+      })
       .finally(() => {
-        setIsStockLoading(false);
+        if (!cancelled) setIsStockLoading(false);
       });
+
+    // Cleanup: evitar actualizar estado si el componente se desmonta
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  return { stockData, isStockLoading };
+  return { stockData, isStockLoading, productUpdates };
 }
+

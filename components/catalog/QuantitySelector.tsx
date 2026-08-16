@@ -1,8 +1,20 @@
-// @ts-nocheck
 'use client';
 
 import { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
+
+interface QuantitySelectorProps {
+  value: number | string;
+  onChange: (val: number | string) => void;
+  unit?: string;
+  min?: number;
+  max?: number;
+  disabled?: boolean;
+  showQuickPills?: boolean;
+  isWholesaleActive?: boolean;
+  minWholesaleQty?: number;
+  savingPercent?: number;
+}
 
 export default function QuantitySelector({
   value,
@@ -15,7 +27,7 @@ export default function QuantitySelector({
   isWholesaleActive = false,
   minWholesaleQty = 30,
   savingPercent = 0
-}) {
+}: QuantitySelectorProps) {
   const [bounce, setBounce] = useState(false);
 
   const triggerBounce = () => {
@@ -26,25 +38,25 @@ export default function QuantitySelector({
   const handleDecrement = () => {
     if (disabled) return;
     triggerBounce();
-    const nextVal = Math.max(0, (parseFloat(value) || 1) - 1);
+    const nextVal = Math.max(0, (parseFloat(String(value)) || 1) - 1);
     onChange(nextVal);
   };
 
   const handleIncrement = () => {
     if (disabled) return;
     triggerBounce();
-    const nextVal = Math.min(max, (parseFloat(value) || 0) + 1);
+    const nextVal = Math.min(max, (parseFloat(String(value)) || 0) + 1);
     onChange(nextVal);
   };
 
-  const handleQuickAdd = (amount) => {
+  const handleQuickAdd = (amount: number) => {
     if (disabled) return;
     triggerBounce();
-    const nextVal = Math.min(max, (parseFloat(value) || 0) + amount);
+    const nextVal = Math.min(max, (parseFloat(String(value)) || 0) + amount);
     onChange(nextVal);
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     if (raw === '') {
       onChange('');
@@ -56,7 +68,7 @@ export default function QuantitySelector({
     }
   };
 
-  const currentQty = parseFloat(value) || 0;
+  const currentQty = parseFloat(String(value)) || 0;
   const isThresholdClose = !isWholesaleActive && currentQty >= (minWholesaleQty / 2);
 
   return (

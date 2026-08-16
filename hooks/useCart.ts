@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { PRODUCTS } from '../data/products';
+import type { CartItem } from '../types/catalog';
 
 export function useCart() {
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -16,18 +17,22 @@ export function useCart() {
           if (Array.isArray(parsed)) {
             setCart(parsed);
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn('[useCart] No se pudo restaurar el carrito desde localStorage:', e);
+        }
       }
     }
     setIsLoaded(true);
   }, []);
-  const [cartCount, setCartCount] = useState(0);
+
+  // cartCount derivado directamente de cart.length (sin useState separado)
+  // Esto evita la race condition donde cartCount es 0 aunque cart tenga items.
+  const cartCount = cart.length;
 
   useEffect(() => {
     if (isLoaded && typeof window !== 'undefined') {
       localStorage.setItem('loscafeteros_cart', JSON.stringify(cart));
     }
-    setCartCount(cart.length);
   }, [cart, isLoaded]);
 
   const addToCart = useCallback((productId: string, qty: number | string) => {

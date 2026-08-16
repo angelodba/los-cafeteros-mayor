@@ -1,5 +1,6 @@
-// @ts-nocheck
-export const PRODUCTS = [
+import type { Product } from '../types/catalog';
+
+export const PRODUCTS: Product[] = [
   {
     "id": "1",
     "name": "Aguacate Polo",
@@ -1088,7 +1089,7 @@ export const PRODUCTS = [
   }
 ];
 
-function normalizeText(str) {
+function normalizeText(str: string): string {
   if (!str) return '';
   return str.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }

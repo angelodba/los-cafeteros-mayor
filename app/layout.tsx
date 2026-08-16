@@ -28,9 +28,9 @@ export const metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: 'cover',
+  maximumScale: 5,       // Permite zoom de accesibilidad (WCAG 2.1 AA)
+  userScalable: true,    // NO desactivar zoom — viola WCAG 2.1 AA
+  viewportFit: 'cover',  // iOS notch safe-area
   themeColor: '#F2EEDC',
 };
 
