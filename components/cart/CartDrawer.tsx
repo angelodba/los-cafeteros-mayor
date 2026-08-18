@@ -13,15 +13,15 @@ import {
   Truck, 
   ArrowRight, 
   MapPin, 
-  Sparkles,
-  CheckCircle2,
-  AlertCircle
+  Sparkles 
 } from 'lucide-react';
 import QuantitySelector from '../catalog/QuantitySelector';
 import { useStore } from '../../context/StoreContext';
 import { createQuoteAction } from '../../app/actions/orders';
 import type { CartItem } from '../../types/catalog';
 import { formatUSD, formatVES } from '../../lib/currency';
+
+const WHATSAPP_PHONE = '584247087749'; // Número Oficial Feria Los Cafeteros: +58 424-7087749
 
 const CARACAS_ZONES = [
   'Las Mercedes',
@@ -109,20 +109,10 @@ export default function CartDrawer() {
 
   const isStep2Valid = Boolean(billingData?.restName?.trim() && billingData?.zone?.trim());
 
-  // Generador de Cotizaciones por WhatsApp automatizado con Markdown estructurado
-  const handleSendWhatsapp = () => {
-    const customerName = billingData?.restName?.trim();
-    const deliveryZone = billingData?.zone?.trim();
-
-    if (cart.length === 0) {
-      alert('Tu carrito está vacío. Agrega productos antes de cotizar.');
-      return;
-    }
-
-    if (!customerName || !deliveryZone) {
-      alert('Por favor completa los Datos del Cliente y la Zona de Despacho antes de enviar la cotización.');
-      return;
-    }
+  // Generador del mensaje con formato Markdown para WhatsApp
+  const generateWhatsappMessage = () => {
+    const customerName = billingData?.restName?.trim() || 'Cliente';
+    const deliveryZone = billingData?.zone?.trim() || 'Caracas';
 
     const now = new Date();
     // Zona horaria Venezuela: UTC-4 (America/Caracas)
@@ -170,6 +160,26 @@ export default function CartDrawer() {
     }
 
     msg += `_Solicitud generada automáticamente desde la web oficial de LOS CAFETEROS._`;
+    return msg;
+  };
+
+  const whatsappUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(generateWhatsappMessage())}`;
+
+  const handleWhatsappClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const customerName = billingData?.restName?.trim();
+    const deliveryZone = billingData?.zone?.trim();
+
+    if (cart.length === 0) {
+      e.preventDefault();
+      alert('Tu carrito está vacío. Agrega productos antes de cotizar.');
+      return;
+    }
+
+    if (!customerName || !deliveryZone) {
+      e.preventDefault();
+      alert('Por favor completa los Datos del Cliente y la Zona de Despacho antes de enviar la cotización.');
+      return;
+    }
 
     // Trigger Server Action en background (fire and forget)
     createQuoteAction({
@@ -196,18 +206,13 @@ export default function CartDrawer() {
       notes: notes
     }).catch(err => console.warn('Mock Supabase failed silently:', err));
 
-    const encoded = encodeURIComponent(msg);
-    // SECURITY: Agregar rel="noopener noreferrer" equivalente para window.open
-    const waWindow = window.open(`https://wa.me/584247087749?text=${encoded}`, '_blank', 'noopener,noreferrer');
-    if (waWindow) waWindow.opener = null;
-
-    // Limpiar carrito y reiniciar formulario, pero manteniendo los datos de facturación en localStorage
+    // Limpiar carrito y reiniciar drawer, pero manteniendo los datos de facturación en localStorage
     setTimeout(() => {
       onClearCart();
       setNotes('');
       setActiveStep(1);
       onClose();
-    }, 800);
+    }, 1000);
   };
 
   return (
@@ -486,7 +491,7 @@ export default function CartDrawer() {
               /* Footer Paso 2: Pestaña Inferior Dinámica (Reducida -> Expandida) */
               <div className={`drawer-footer-step2 ${isStep2Valid ? 'is-expanded' : 'is-collapsed'}`}>
                 {!isStep2Valid ? (
-                  /* Estado 1: Ultra reducida (~36px), no estorba al escribir */
+                  /* Estado 1: Ultra reducida (~34px), no estorba al escribir */
                   <div className="quote-summary-card-collapsed">
                     <div className="collapsed-info-bar">
                       <div className="collapsed-left">
@@ -499,7 +504,7 @@ export default function CartDrawer() {
                     </div>
                   </div>
                 ) : (
-                  /* Estado 2: Desplegada con resumen y botón de WhatsApp */
+                  /* Estado 2: Desplegada con resumen y enlace directo a la API de WhatsApp */
                   <div className="quote-summary-card-expanded">
                     <div className="summary-rows">
                       <div className="summary-row">
@@ -522,14 +527,17 @@ export default function CartDrawer() {
                       </div>
                     </div>
 
-                    <button 
-                      type="button" 
+                    <a 
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="btn btn-whatsapp btn-block" 
-                      onClick={handleSendWhatsapp}
+                      onClick={handleWhatsappClick}
+                      style={{ textDecoration: 'none' }}
                     >
                       <Send size={18} />
                       <span>Enviar Cotización a WhatsApp 📲</span>
-                    </button>
+                    </a>
                     <p className="whatsapp-disclaimer">Recibirás confirmación inmediata de peso exacto y horario de despacho.</p>
                   </div>
                 )}
