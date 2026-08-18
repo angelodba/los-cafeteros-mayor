@@ -6,3 +6,4 @@ node_modules
 *.log
 .ds_store
 Thumbs.db
+.env*
