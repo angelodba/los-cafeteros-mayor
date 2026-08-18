@@ -11,6 +11,7 @@ export interface Product {
   tags: string[];
   wholesaleNote?: string;
   isOffer?: boolean;
+  changes?: string;
 }
 
 /**
@@ -31,11 +32,17 @@ export interface StockInfo {
 
 export type StockData = Record<string, StockInfo>;
 
+export interface NormalizedCartItem {
+  productId: string;
+  qty: number | string;
+}
+
 /**
- * Actualizaciones de producto provenientes del Google Sheet.
- * Solo incluye los campos que el Sheet puede sobrescribir.
+ * Actualizaciones de producto provenientes del Google Sheet o API.
+ * Solo incluye los campos que el origen remoto puede sobrescribir.
  */
 export interface ProductUpdate {
+  name?: string;
   priceDetal?: number;
   priceMayor?: number;
   wholesaleNote?: string;
@@ -43,7 +50,9 @@ export interface ProductUpdate {
   unit?: string;
   category?: string;
   minWholesaleQty?: number;
+  changes?: string;
 }
 
 export type ProductUpdatesMap = Record<string, ProductUpdate>;
+
 

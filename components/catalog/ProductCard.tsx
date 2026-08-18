@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, CheckCircle2, AlertTriangle, XCircle, Slash, ShoppingBag } from 'lucide-react';
+import { Plus, CheckCircle2, AlertTriangle, XCircle, Slash, ShoppingBag, Sparkles } from 'lucide-react';
 import QuantitySelector from './QuantitySelector';
 import { Product, CartItem, StockData } from '../../types/catalog';
 import { useStore } from '../../context/StoreContext';
@@ -59,7 +59,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
           </span>
         ) : isLowStock ? (
           <span className="stock-status-badge warning">
-            <AlertTriangle size={11} /> ¡Últimas {availableQty} {product.unit}!
+            <AlertTriangle size={11} /> ¡Últimas {availableQty} {prod.unit}!
           </span>
         ) : (
           <span className="stock-status-badge available">
@@ -70,6 +70,13 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
         {prod.wholesaleNote && (
           <span className="wholesale-cesta-tag">
             📦 {prod.wholesaleNote}
+          </span>
+        )}
+
+        {prod.changes && (
+          <span className="product-change-badge" title={prod.changes}>
+            <Sparkles size={11} className="product-change-icon" />
+            <span>{prod.changes}</span>
           </span>
         )}
 
@@ -86,7 +93,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
               ${currentPrice.toFixed(2)}
             </span>
             <span className="price-unit">
-              / {product.unit} {isItemWholesaleActive ? '(Al Mayor)' : '(Detal)'}
+              / {prod.unit} {isItemWholesaleActive ? '(Al Mayor)' : '(Detal)'}
             </span>
           </div>
           <div className="price-comparison">

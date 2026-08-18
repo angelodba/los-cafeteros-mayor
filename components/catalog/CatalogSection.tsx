@@ -13,7 +13,7 @@ const normalizeText = (text: string): string => {
 };
 
 export default function CatalogSection() {
-  const { cart, stockData, addToCart: onAddToCart, setIsCartOpen } = useStore();
+  const { products, cart, stockData, addToCart: onAddToCart, setIsCartOpen } = useStore();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -39,11 +39,13 @@ export default function CatalogSection() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const catalogList = products && products.length > 0 ? products : PRODUCTS;
+
   const filteredProducts = useMemo(() => {
     const normQuery = normalizeText(debouncedQuery);
     const tokens = normQuery ? normQuery.split(/\s+/).filter(t => t.length > 0) : [];
 
-    return PRODUCTS.filter((prod) => {
+    return catalogList.filter((prod) => {
       const matchCat = activeCategory === 'all' || prod.category === activeCategory;
       if (!matchCat) return false;
       if (tokens.length === 0) return true;
@@ -52,11 +54,13 @@ export default function CatalogSection() {
       const normCat = normalizeText(prod.category);
       const normHighlight = normalizeText(prod.highlight);
       const normTags = (prod.tags || []).map(t => normalizeText(t)).join(' ');
-      const text = `${normName} ${normCat} ${normHighlight} ${normTags}`;
+      const normChanges = normalizeText(prod.changes || '');
+      const normWholesaleNote = normalizeText(prod.wholesaleNote || '');
+      const text = `${normName} ${normCat} ${normHighlight} ${normTags} ${normChanges} ${normWholesaleNote}`;
 
       return tokens.every(token => text.includes(token));
     });
-  }, [debouncedQuery, activeCategory]);
+  }, [catalogList, debouncedQuery, activeCategory]);
 
   const [visibleCount, setVisibleCount] = useState(12);
 

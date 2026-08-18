@@ -4,7 +4,8 @@ import React, { createContext, useContext, ReactNode, useState, useMemo } from '
 import { useBcvRate } from '../hooks/useBcvRate';
 import { useStock } from '../hooks/useStock';
 import { useCart } from '../hooks/useCart';
-import type { CartItem, StockData, ProductUpdatesMap } from '../types/catalog';
+import { PRODUCTS } from '../data/products';
+import type { CartItem, Product, StockData, ProductUpdatesMap } from '../types/catalog';
 
 type BillingData = {
   restName: string;
@@ -17,11 +18,13 @@ type StoreContextType = {
   // BCV Rate
   bcvRate: number;
   isBcvLoading: boolean;
-  // Stock & Product Updates from Google Sheets
+  // Dynamic unified catalog & stock
+  products: Product[];
   stockData: StockData;
   isStockLoading: boolean;
   /** Actualizaciones de precios/datos provenientes del Google Sheet (reactivo, NO mutación directa) */
   productUpdates: ProductUpdatesMap;
+  refreshStock: () => Promise<void>;
   // Cart
   cart: CartItem[];
   cartCount: number;
@@ -43,8 +46,19 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const { bcvRate, isLoading: isBcvLoading } = useBcvRate();
-  const { stockData, isStockLoading, productUpdates } = useStock();
-  const { cart, cartCount, addToCart, updateQty, removeItem, clearCart } = useCart();
+  const { stockData, isStockLoading, productUpdates, refreshStock } = useStock();
+
+  // Unified reactive catalog: Merges static defaults with live overrides (names, prices, units, notes)
+  const products = useMemo<Product[]>(() => {
+    return PRODUCTS.map((baseProduct) => {
+      const slug = baseProduct.name ? baseProduct.name.toLowerCase().replace(/\s+/g, '-') : '';
+      const updates = productUpdates[baseProduct.id] || productUpdates[slug] || productUpdates[baseProduct.name];
+      if (!updates) return baseProduct;
+      return { ...baseProduct, ...updates };
+    });
+  }, [productUpdates]);
+
+  const { cart, cartCount, addToCart, updateQty, removeItem, clearCart } = useCart(products, productUpdates);
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -60,9 +74,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     () => ({
       bcvRate,
       isBcvLoading,
+      products,
       stockData,
       isStockLoading,
       productUpdates,
+      refreshStock,
       cart,
       cartCount,
       billingData,
@@ -79,9 +95,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [
       bcvRate,
       isBcvLoading,
+      products,
       stockData,
       isStockLoading,
       productUpdates,
+      refreshStock,
       cart,
       cartCount,
       billingData,
@@ -104,4 +122,3 @@ export function useStore() {
   }
   return context;
 }
-

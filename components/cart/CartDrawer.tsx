@@ -55,7 +55,8 @@ export default function CartDrawer() {
 
   cart.forEach((item: CartItem) => {
     const prod = item.product;
-    const qty = parseFloat(String(item.qty)) || 0;
+    // Temporary Empty Qty Handling: gracefully handle '' while user is typing
+    const qty = item.qty === '' ? 0 : parseFloat(String(item.qty)) || 0;
     const minWholesaleQty = prod.minWholesaleQty || 30;
     const isWholesale = qty >= minWholesaleQty;
 
@@ -66,12 +67,19 @@ export default function CartDrawer() {
     subtotalDetalUsd += itemDetalCost;
     totalUsd += itemActualCost;
     totalItemsCount += qty;
-    if (isWholesale) wholesaleItemsCount++;
+    if (isWholesale && qty > 0) wholesaleItemsCount++;
   });
 
+  // Floating-Point Arithmetic Safety
+  subtotalDetalUsd = Math.round((subtotalDetalUsd + Number.EPSILON) * 100) / 100;
+  totalUsd = Math.round((totalUsd + Number.EPSILON) * 100) / 100;
+  
   totalSavingsUsd = Math.max(0, subtotalDetalUsd - totalUsd);
+  totalSavingsUsd = Math.round((totalSavingsUsd + Number.EPSILON) * 100) / 100;
+
   const activeBcvRate = bcvRate && bcvRate > 0 ? bcvRate : 36.50;
-  const totalBs = totalUsd * activeBcvRate;
+  let totalBs = totalUsd * activeBcvRate;
+  totalBs = Math.round((totalBs + Number.EPSILON) * 100) / 100;
 
   // Generador de Cotizaciones por WhatsApp automatizado con Markdown estructurado
   const handleSendWhatsapp = () => {
@@ -97,13 +105,18 @@ export default function CartDrawer() {
     let itemsText = '';
     cart.forEach((item: CartItem) => {
       const prod = item.product;
-      const qty = parseFloat(String(item.qty)) || 0;
+      const qty = item.qty === '' ? 0 : parseFloat(String(item.qty)) || 0;
+      if (qty === 0) return;
+      
       const minWholesaleQty = prod.minWholesaleQty || 30;
       const isWholesale = qty >= minWholesaleQty;
       const unitPrice = isWholesale ? prod.priceMayor : prod.priceDetal;
-      const sub = unitPrice * qty;
+      const sub = Math.round(((unitPrice * qty) + Number.EPSILON) * 100) / 100;
 
-      itemsText += `• ${qty} ${prod.unit} — *${prod.name}* ${isWholesale ? '(Al Mayor)' : '(Detal)'} ➡️ *${formatUSD(sub)}* (${formatUSD(unitPrice)}/${prod.unit})\n`;
+      const badgeInfo = prod.changes || prod.wholesaleNote || '';
+      const badgeText = badgeInfo ? ` [${badgeInfo}]` : '';
+
+      itemsText += `• ${qty} ${prod.unit} — *${prod.name}* ${isWholesale ? '(Al Mayor)' : '(Detal)'}${badgeText} ➡️ *${formatUSD(sub)}* (${formatUSD(unitPrice)}/${prod.unit})\n`;
     });
 
     let msg = `*NUEVA COTIZACIÓN AL MAYOR - LOS CAFETEROS* 🚛\n\n`;
@@ -148,7 +161,7 @@ export default function CartDrawer() {
           name: item.product.name,
           qty: parsedQty,
           unitPrice: unitPrice,
-          subtotal: unitPrice * parsedQty,
+          subtotal: Math.round(((unitPrice * parsedQty) + Number.EPSILON) * 100) / 100,
           isWholesale: parsedQty >= minWq
         };
       }),
