@@ -103,34 +103,55 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
         <span className="product-category-tag">{prod.highlight}</span>
         <h3 className="product-title">{prod.name}</h3>
 
-        <div className="product-prices">
-          <div className="price-main">
-            <span className="price-amount" style={{ color: isItemWholesaleActive ? 'var(--verde-hoja)' : undefined }}>
-              ${currentPrice.toFixed(2)}
-            </span>
-            <span className="price-unit">
-              / {prod.unit} {isItemWholesaleActive ? '(Al Mayor)' : '(Detal)'}
-            </span>
+        {/* Contenedor Dual de Precios Detal y Mayor */}
+        <div className="product-dual-pricing">
+          {/* Tarjeta Detal */}
+          <div className={`price-tier-card detal-tier ${!isItemWholesaleActive && !isNoWholesale ? 'active-tier' : ''}`}>
+            <div className="price-tier-badge-row">
+              <span className="price-tier-name">AL DETAL</span>
+              {!isItemWholesaleActive && !isNoWholesale && (
+                <span className="active-dot-pill">ACTIVO</span>
+              )}
+            </div>
+            <div className="price-tier-amount">
+              <span className="price-symbol">$</span>
+              <span className="price-val">{prod.priceDetal.toFixed(2)}</span>
+            </div>
+            <div className="price-tier-sub">
+              <span>por {prod.unit}</span>
+            </div>
           </div>
-          <div className="price-comparison">
-            {isNoWholesale ? (
-              <span className="no-wholesale-label">
-                ✨ Precio único al Detal
-              </span>
-            ) : isItemWholesaleActive ? (
-              <>
-                Detal normal: <s>${prod.priceDetal.toFixed(2)}</s>{' '}
-                <span className="price-saving">(-{savingPercent}% Ahorro Mayor)</span>
-              </>
-            ) : (
-              <>
-                Al Mayor (desde {minWholesaleQty} {prod.unit}):{' '}
-                <strong style={{ color: 'var(--verde-hoja)', fontWeight: 800 }}>
-                  ${prod.priceMayor.toFixed(2)}
-                </strong>
-              </>
-            )}
-          </div>
+
+          {/* Tarjeta Mayor */}
+          {!isNoWholesale ? (
+            <div className={`price-tier-card mayor-tier ${isItemWholesaleActive ? 'active-tier' : ''}`}>
+              <div className="price-tier-badge-row">
+                <span className="price-tier-name mayor-accent">AL MAYOR</span>
+                {savingPercent > 0 && (
+                  <span className="saving-badge-pill">-{savingPercent}%</span>
+                )}
+              </div>
+              <div className="price-tier-amount">
+                <span className="price-symbol">$</span>
+                <span className="price-val">{prod.priceMayor.toFixed(2)}</span>
+              </div>
+              <div className="price-tier-sub">
+                <span>desde {minWholesaleQty} {prod.unit}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="price-tier-card no-mayor-tier">
+              <div className="price-tier-badge-row">
+                <span className="price-tier-name">AL MAYOR</span>
+              </div>
+              <div className="price-tier-amount no-val">
+                <span className="no-scale-text">No aplica</span>
+              </div>
+              <div className="price-tier-sub">
+                <span>Venta solo detal</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="product-actions-v2">

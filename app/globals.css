@@ -1241,50 +1241,157 @@ img { max-width: 100%; height: auto; display: block; }
     letter-spacing: -0.015em;
 }
 
-.product-prices {
-    margin-bottom: 16px;
-    padding: 12px 0;
+/* --- Contenedor Dual de Precios (Detal y Mayor de igual prominencia) --- */
+.product-dual-pricing {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding: 10px 0;
     border-top: 1px solid rgba(13, 13, 13, 0.08);
     border-bottom: 1px solid rgba(13, 13, 13, 0.08);
 }
 
-.price-main {
+.price-tier-card {
+    background: #F9FAFB;
+    border: 1.5px solid #E5E7EB;
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
     display: flex;
-    align-items: baseline;
-    gap: 6px;
-    margin-bottom: 4px;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    min-height: 80px;
 }
 
-.price-amount {
+.price-tier-card.detal-tier {
+    background: #F9FAFB;
+    border-color: #E5E7EB;
+}
+
+.price-tier-card.detal-tier.active-tier {
+    background: #FFFFFF;
+    border-color: #111827;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.price-tier-card.mayor-tier {
+    background: #F7FEE7;
+    border-color: #D9F99D;
+}
+
+.price-tier-card.mayor-tier.active-tier {
+    background: #FFFFFF;
+    border-color: var(--color-verde-hoja);
+    box-shadow: 0 4px 14px rgba(101, 166, 26, 0.2), 0 0 0 1px var(--color-verde-hoja);
+}
+
+.price-tier-card.no-mayor-tier {
+    background: #F3F4F6;
+    border-color: #E5E7EB;
+    opacity: 0.85;
+}
+
+.price-tier-badge-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 2px;
+}
+
+.price-tier-name {
     font-family: var(--font-jakarta), system-ui, sans-serif;
-    font-size: 1.85rem;
+    font-size: 0.68rem;
     font-weight: 800;
+    color: #4B5563;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.price-tier-name.mayor-accent {
+    color: #3F6212;
+}
+
+.active-dot-pill {
+    font-family: var(--font-jakarta), system-ui, sans-serif;
+    font-size: 0.58rem;
+    font-weight: 800;
+    background: #111827;
+    color: #FFFFFF;
+    padding: 1px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+}
+
+.saving-badge-pill {
+    font-family: var(--font-jakarta), system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: #65A61A;
+    color: #FFFFFF;
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.01em;
+}
+
+.price-tier-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    margin: 2px 0;
+}
+
+.price-tier-amount.no-val {
+    align-items: center;
+    min-height: 24px;
+}
+
+.price-symbol {
+    font-family: var(--font-jakarta), system-ui, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1;
+}
+
+.mayor-tier .price-symbol {
+    color: #166534;
+}
+
+.price-val {
+    font-family: var(--font-jakarta), system-ui, sans-serif;
+    font-size: 1.45rem;
+    font-weight: 900;
     color: #111827;
     line-height: 1;
     letter-spacing: -0.02em;
 }
 
-.price-unit {
-    font-family: var(--font-jakarta), system-ui, sans-serif;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #4B5563;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+.mayor-tier .price-val {
+    color: #166534;
 }
 
-.price-comparison {
+.no-scale-text {
     font-family: var(--font-jakarta), system-ui, sans-serif;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #374151;
-    line-height: 1.35;
-}
-
-.no-wholesale-label {
-    color: #92400E;
+    font-size: 0.85rem;
     font-weight: 700;
-    font-size: 0.82rem;
+    color: #6B7280;
+}
+
+.price-tier-sub {
+    font-family: var(--font-jakarta), system-ui, sans-serif;
+    font-size: 0.70rem;
+    font-weight: 700;
+    color: #6B7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mayor-tier .price-tier-sub {
+    color: #4D7C0F;
 }
 
 .product-actions {
