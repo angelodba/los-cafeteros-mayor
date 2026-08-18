@@ -45,6 +45,60 @@ export function parsePrice(val: string | undefined): number {
   return match ? parseFloat(match[0]) : NaN;
 }
 
+/**
+ * Parsea e interpreta el texto de disponibilidad del Google Sheet.
+ * Retorna true para DISPONIBLE, false para NO DISPONIBLE / AGOTADO, o null si no se especificó.
+ */
+export function isAvailabilityString(val: string | undefined): boolean | null {
+  if (!val) return null;
+  const normalized = val
+    .trim()
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s_-]+/g, ' ');
+
+  const truthyWords = [
+    'TRUE',
+    'SI',
+    'YES',
+    'DISPONIBLE',
+    'ACTIVO',
+    '1',
+    'EN STOCK',
+    'HAY',
+    'OK',
+    'DISP'
+  ];
+
+  const falsyWords = [
+    'FALSE',
+    'NO',
+    'NO DISPONIBLE',
+    'NODISPONIBLE',
+    'AGOTADO',
+    'AGOTADA',
+    'SIN STOCK',
+    'SINSTOCK',
+    'NO HAY',
+    'NOHAY',
+    '0',
+    'INACTIVO',
+    'PAUSADO',
+    'ND',
+    'N/A',
+    'NA',
+    'SIN PRECIO',
+    'NO DISP',
+    'NO DISPONIBLES',
+    'FUERA DE STOCK'
+  ];
+
+  if (truthyWords.includes(normalized)) return true;
+  if (falsyWords.includes(normalized)) return false;
+  return null;
+}
+
 export async function GET() {
   try {
     const res = await fetch(GOOGLE_SHEETS_URL, {
@@ -167,18 +221,30 @@ export async function GET() {
       const retailVal = colMap.priceDetal !== undefined ? parsePrice(sanitizeValue(parts[colMap.priceDetal])) : NaN;
       const wholesaleVal = colMap.priceMayor !== undefined ? parsePrice(sanitizeValue(parts[colMap.priceMayor])) : NaN;
       const bulkText = sanitizeValue(colMap.bulkInfo !== undefined ? parts[colMap.bulkInfo] : '');
-      const availRaw = sanitizeValue(colMap.isAvailable !== undefined ? parts[colMap.isAvailable] : 'TRUE') || 'TRUE';
-      const availText = availRaw.toUpperCase()
-        // Normalizar tilde: SÍ → SI
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const availRaw = sanitizeValue(colMap.isAvailable !== undefined ? parts[colMap.isAvailable] : '');
+      const rawChanges = sanitizeValue(colMap.changes !== undefined ? parts[colMap.changes] : '');
+      const changesText = rawChanges.toLowerCase();
 
-      const isAvail =
-        availText === 'TRUE' ||
-        availText === 'SI' ||
-        availText === 'DISPONIBLE' ||
-        availText === '1' ||
-        availText === 'YES' ||
-        availText === 'ACTIVO';
+      // Detección de texto que indica "no disponible" o "agotado"
+      const parsedAvail = isAvailabilityString(availRaw);
+      const changesIndicatesUnavailable =
+        changesText.includes('agotado') ||
+        changesText.includes('no disponible') ||
+        changesText.includes('sin stock') ||
+        changesText.includes('no hay') ||
+        changesText.includes('fuera de stock') ||
+        changesText.includes('sin precio');
+
+      // REGLA CRÍTICA DE DISPONIBILIDAD:
+      // 1. Si no tiene precio (vacío, 0, 0.00, NaN) -> NO DISPONIBLE
+      // 2. Si la columna is_available es FALSE / NO / AGOTADO / etc. -> NO DISPONIBLE
+      // 3. Si la columna changes dice agotado / no disponible -> NO DISPONIBLE
+      // 4. Solo está DISPONIBLE si tiene precio > 0 y no está explícitamente marcado como no disponible
+      const hasValidPrice = !isNaN(retailVal) && retailVal > 0;
+      let isAvail = false;
+      if (hasValidPrice && parsedAvail !== false && !changesIndicatesUnavailable) {
+        isAvail = true;
+      }
 
       const stockObj = {
         stockQty: isAvail ? 100 : 0,
@@ -187,12 +253,23 @@ export async function GET() {
         harvestDate: new Date().toISOString().split('T')[0]
       };
 
-      const updateObj: Record<string, number | string | boolean> = {};
+      const updateObj: Record<string, number | string | boolean> = {
+        isAvailable: isAvail
+      };
+
       if (rawName) {
         updateObj.name = rawName;
       }
-      if (!isNaN(retailVal) && retailVal > 0) updateObj.priceDetal = retailVal;
-      if (!isNaN(wholesaleVal) && wholesaleVal > 0) updateObj.priceMayor = wholesaleVal;
+      if (hasValidPrice) {
+        updateObj.priceDetal = retailVal;
+      } else if (!isNaN(retailVal)) {
+        updateObj.priceDetal = retailVal;
+      }
+
+      if (!isNaN(wholesaleVal) && wholesaleVal > 0) {
+        updateObj.priceMayor = wholesaleVal;
+      }
+
       if (bulkText) {
         updateObj.wholesaleNote = bulkText;
         updateObj.highlight = bulkText;
@@ -216,9 +293,6 @@ export async function GET() {
 
       // Parsear la columna de cambios / business rules en lenguaje natural
       if (colMap.changes !== undefined) {
-        const rawChanges = sanitizeValue(parts[colMap.changes]);
-        const changesText = rawChanges.toLowerCase();
-
         // Preservar la nota de cambios si no es un placeholder vacío
         if (rawChanges) {
           updateObj.changes = rawChanges;
@@ -240,7 +314,7 @@ export async function GET() {
           // Manejar "sin mayor" para deshabilitar wholesale
           if (changesText.includes('sin mayor')) {
             updateObj.minWholesaleQty = 999999;
-            updateObj.priceMayor = !isNaN(retailVal) && retailVal > 0 ? retailVal : -1;
+            updateObj.priceMayor = hasValidPrice ? retailVal : -1;
           }
         }
       }

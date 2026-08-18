@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parsePrice } from '../app/api/stock/route';
+import { parsePrice, isAvailabilityString } from '../app/api/stock/route';
 
 describe('Google Sheets Price Parsing (parsePrice)', () => {
   it('Debe parsear números planos y con decimales', () => {
@@ -47,6 +47,41 @@ describe('Google Sheets Price Parsing (parsePrice)', () => {
     expect(parsePrice(undefined)).toBeNaN();
     expect(parsePrice('—')).toBeNaN();
     expect(parsePrice('N/A')).toBeNaN();
+  });
+});
+
+describe('Availability & No Disponible Detection (isAvailabilityString)', () => {
+  it('Debe detectar palabras afirmativas como true (Disponible)', () => {
+    expect(isAvailabilityString('TRUE')).toBe(true);
+    expect(isAvailabilityString('true')).toBe(true);
+    expect(isAvailabilityString('SI')).toBe(true);
+    expect(isAvailabilityString('Sí')).toBe(true);
+    expect(isAvailabilityString('DISPONIBLE')).toBe(true);
+    expect(isAvailabilityString('ACTIVO')).toBe(true);
+    expect(isAvailabilityString('1')).toBe(true);
+  });
+
+  it('Debe detectar palabras de no disponibilidad como false (Agotado / No Disponible)', () => {
+    expect(isAvailabilityString('FALSE')).toBe(false);
+    expect(isAvailabilityString('false')).toBe(false);
+    expect(isAvailabilityString('NO')).toBe(false);
+    expect(isAvailabilityString('NO DISPONIBLE')).toBe(false);
+    expect(isAvailabilityString('nodisponible')).toBe(false);
+    expect(isAvailabilityString('no-disponible')).toBe(false);
+    expect(isAvailabilityString('AGOTADO')).toBe(false);
+    expect(isAvailabilityString('agotada')).toBe(false);
+    expect(isAvailabilityString('SIN STOCK')).toBe(false);
+    expect(isAvailabilityString('NO HAY')).toBe(false);
+    expect(isAvailabilityString('0')).toBe(false);
+    expect(isAvailabilityString('INACTIVO')).toBe(false);
+    expect(isAvailabilityString('PAUSADO')).toBe(false);
+    expect(isAvailabilityString('N/A')).toBe(false);
+    expect(isAvailabilityString('ND')).toBe(false);
+  });
+
+  it('Debe devolver null para celdas vacías o indefinidas', () => {
+    expect(isAvailabilityString('')).toBeNull();
+    expect(isAvailabilityString(undefined)).toBeNull();
   });
 });
 

@@ -26,7 +26,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
 
   const itemStock = stockData[prod.id] || { stockQty: 100, minAlert: 15, status: 'disponible' };
   const availableQty = itemStock.stockQty;
-  const isOutOfStock = availableQty <= 0;
+  const isOutOfStock = availableQty <= 0 || prod.priceDetal <= 0 || (prod as any).isAvailable === false;
   const isLowStock = !isOutOfStock && availableQty <= itemStock.minAlert;
 
   const effectiveQty = (cartItem ? parseFloat(String(cartItem.qty)) || 0 : 0) + (parseFloat(qtyInput as string) || 0);
@@ -57,7 +57,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
 
         {isOutOfStock ? (
           <span className="stock-status-badge empty">
-            <XCircle size={12} /> Agotado
+            <XCircle size={12} /> No disponible
           </span>
         ) : isLowStock ? (
           <span className="stock-status-badge warning">
@@ -69,7 +69,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
           </span>
         )}
 
-        {prod.wholesaleNote && !isNoWholesale && (
+        {prod.wholesaleNote && !isNoWholesale && !isOutOfStock && (
           <span className="wholesale-cesta-tag">
             📦 {prod.wholesaleNote}
           </span>
@@ -106,24 +106,30 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
         {/* Contenedor Dual de Precios Detal y Mayor */}
         <div className="product-dual-pricing">
           {/* Tarjeta Detal */}
-          <div className={`price-tier-card detal-tier ${!isItemWholesaleActive && !isNoWholesale ? 'active-tier' : ''}`}>
+          <div className={`price-tier-card detal-tier ${isOutOfStock ? 'no-mayor-tier' : (!isItemWholesaleActive && !isNoWholesale ? 'active-tier' : '')}`}>
             <div className="price-tier-badge-row">
               <span className="price-tier-name">AL DETAL</span>
-              {!isItemWholesaleActive && !isNoWholesale && (
+              {!isOutOfStock && !isItemWholesaleActive && !isNoWholesale && (
                 <span className="active-dot-pill">ACTIVO</span>
               )}
             </div>
             <div className="price-tier-amount">
-              <span className="price-symbol">$</span>
-              <span className="price-val">{prod.priceDetal.toFixed(2)}</span>
+              {prod.priceDetal > 0 && !isOutOfStock ? (
+                <>
+                  <span className="price-symbol">$</span>
+                  <span className="price-val">{prod.priceDetal.toFixed(2)}</span>
+                </>
+              ) : (
+                <span className="no-scale-text">No disponible</span>
+              )}
             </div>
             <div className="price-tier-sub">
-              <span>por {prod.unit}</span>
+              <span>{prod.priceDetal > 0 && !isOutOfStock ? `por ${prod.unit}` : 'Sin stock'}</span>
             </div>
           </div>
 
           {/* Tarjeta Mayor */}
-          {!isNoWholesale ? (
+          {!isNoWholesale && !isOutOfStock ? (
             <div className={`price-tier-card mayor-tier ${isItemWholesaleActive ? 'active-tier' : ''}`}>
               <div className="price-tier-badge-row">
                 <span className="price-tier-name mayor-accent">AL MAYOR</span>
@@ -145,10 +151,10 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
                 <span className="price-tier-name">AL MAYOR</span>
               </div>
               <div className="price-tier-amount no-val">
-                <span className="no-scale-text">No aplica</span>
+                <span className="no-scale-text">{isOutOfStock ? 'No disponible' : 'No aplica'}</span>
               </div>
               <div className="price-tier-sub">
-                <span>Venta solo detal</span>
+                <span>{isOutOfStock ? 'Sin stock' : 'Venta solo detal'}</span>
               </div>
             </div>
           )}
@@ -176,7 +182,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
             disabled={isOutOfStock}
           >
             {isOutOfStock ? <Slash size={18} /> : <ShoppingBag size={18} />}
-            <span>{isOutOfStock ? 'Agotado' : `Agregar al Pedido`}</span>
+            <span>{isOutOfStock ? 'No disponible' : `Agregar al Pedido`}</span>
           </button>
         </div>
       </div>
