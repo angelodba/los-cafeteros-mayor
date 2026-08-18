@@ -45,6 +45,13 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
     if (availableQty > 0 && qtyToAdd > availableQty) qtyToAdd = availableQty;
 
     if (qtyToAdd > 0 && !isOutOfStock) {
+      if (typeof window !== 'undefined' && 'navigator' in window && 'vibrate' in navigator) {
+        try {
+          navigator.vibrate([15, 30, 20]); // Micro-patrón háptico de éxito
+        } catch (e) {
+          // Safe fallback
+        }
+      }
       onAddToCart(prod.id, qtyToAdd);
       if (onOpenCart) onOpenCart();
     }

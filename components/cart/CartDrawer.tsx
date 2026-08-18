@@ -186,6 +186,7 @@ export default function CartDrawer() {
   return (
     <div className="drawer-overlay">
       <div className="cart-drawer">
+        <div className="mobile-drawer-handle" aria-hidden="true" />
         <div className="drawer-header">
           <div className="drawer-title-group">
             <ShoppingCart size={22} color="var(--verde-hoja)" />

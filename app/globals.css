@@ -1842,21 +1842,51 @@ img { max-width: 100%; height: auto; display: block; }
     justify-content: space-between;
 }
 
-/* Responsive & Mobile Enhancements (iOS & Android) */
+/* Responsive & Mobile Enhancements (iOS, Android & Tablets) */
+.mobile-drawer-handle {
+    display: none;
+}
+
+/* Micro-feedback táctil para todos los botones interactivos */
+button, .btn, .search-chip, .quick-pill-btn, .tab-btn {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:active:not(:disabled),
+.btn:active:not(:disabled),
+.search-chip:active,
+.quick-pill-btn:active:not(:disabled),
+.tab-btn:active {
+    transform: scale(0.97);
+}
+
 @media (max-width: 1024px) {
-    .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 32px; }
     .hero-visual { display: flex; justify-content: center; width: 100%; margin-top: 12px; }
     .hero-card { max-width: 290px; width: 100%; }
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+}
+
+@media (max-width: 820px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
 }
 
 @media (max-width: 768px) {
     .location-details-grid { grid-template-columns: 1fr; }
-    .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+    .footer-grid { grid-template-columns: 1fr; gap: 28px; }
     .form-grid { grid-template-columns: 1fr; }
     .form-group.full-width { grid-column: span 1; }
     .tech-frame { display: none; }
 
-    /* Prevent iOS Safari forced auto-zoom on focused input fields */
+    /* Evitar que iOS Safari haga zoom automático al enfocar inputs */
     input[type="text"],
     input[type="number"],
     input[type="tel"],
@@ -1868,40 +1898,47 @@ img { max-width: 100%; height: auto; display: block; }
         -webkit-appearance: none;
         appearance: none;
     }
+
+    /* Mobile Bottom Sheet Cart Drawer */
+    .mobile-drawer-handle {
+        display: block;
+        width: 38px;
+        height: 4px;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 9999px;
+        margin: 10px auto 4px auto;
+        flex-shrink: 0;
+    }
+
+    .cart-drawer {
+        position: fixed;
+        bottom: 0;
+        top: auto;
+        right: 0;
+        left: 0;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto;
+        max-height: 92dvh;
+        max-height: 92vh;
+        border-radius: 24px 24px 0 0 !important;
+        border-left: none;
+        border-top: 1px solid rgba(13, 13, 13, 0.1);
+        box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.28);
+        animation: slideUpSheet 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideUpSheet {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
 }
 
-/* ============================================================
-   WEBGL CANVAS CONTAINER FIX & MOBILE SAFARI (iOS/Android)
-   ============================================================ */
-.webgl-canvas-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    z-index: 0;
-    pointer-events: none !important;
-    overflow: hidden;
-}
-
-.webgl-canvas-container canvas {
-    pointer-events: none !important;
-    touch-action: none;
-}
-
-/* Safe Area Insets for iPhone Notch & Dynamic Island, iPad & Android Gesture Bars */
+/* Safe Area Insets para iPhone Notch, Dynamic Island, iPad y barras Android */
 .main-header {
-    padding-top: max(16px, env(safe-area-inset-top));
-    padding-left: max(24px, env(safe-area-inset-left));
-    padding-right: max(24px, env(safe-area-inset-right));
-}
-
-.cart-drawer {
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100dvh;
-    padding-top: env(safe-area-inset-top);
+    padding-top: max(14px, env(safe-area-inset-top));
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
 }
 
 .drawer-footer {
@@ -1914,15 +1951,15 @@ img { max-width: 100%; height: auto; display: block; }
     padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
 
-@media (max-width: 600px) {
+@media (max-width: 580px) {
     .container {
-        padding-left: 16px;
-        padding-right: 16px;
+        padding-left: 14px;
+        padding-right: 14px;
     }
 
     .main-header {
-        padding-left: 16px;
-        padding-right: 16px;
+        padding-left: 14px;
+        padding-right: 14px;
     }
 
     .header-sys-tag {
@@ -1930,20 +1967,16 @@ img { max-width: 100%; height: auto; display: block; }
     }
 
     .original-brand-logo {
-        height: 38px;
+        height: 36px;
     }
 
     .products-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px !important;
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
     }
     
-    .product-card {
-        padding: 12px !important;
-    }
-
     .product-title {
-        font-size: 0.88rem !important;
+        font-size: 1.15rem !important;
     }
 
     .category-tabs {
@@ -1963,13 +1996,8 @@ img { max-width: 100%; height: auto; display: block; }
     
     .tab-btn {
         flex-shrink: 0;
-        min-height: 40px;
-    }
-
-    .cart-drawer {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 0 !important;
+        min-height: 42px;
+        padding: 0 16px;
     }
 }
 

@@ -32,28 +32,35 @@ export default function QuantitySelector({
 }: QuantitySelectorProps) {
   const [bounce, setBounce] = useState(false);
 
-  const triggerBounce = () => {
+  const triggerBounce = (vibeMs = 12) => {
     setBounce(true);
+    if (typeof window !== 'undefined' && 'navigator' in window && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(vibeMs);
+      } catch (e) {
+        // Safe fallback if permission not granted
+      }
+    }
     setTimeout(() => setBounce(false), 200);
   };
 
   const handleDecrement = () => {
     if (disabled) return;
-    triggerBounce();
+    triggerBounce(10);
     const nextVal = Math.max(0, (parseFloat(String(value)) || 1) - 1);
     onChange(nextVal);
   };
 
   const handleIncrement = () => {
     if (disabled) return;
-    triggerBounce();
+    triggerBounce(14);
     const nextVal = Math.min(max, (parseFloat(String(value)) || 0) + 1);
     onChange(nextVal);
   };
 
   const handleQuickAdd = (amount: number) => {
     if (disabled) return;
-    triggerBounce();
+    triggerBounce(18);
     const nextVal = Math.min(max, (parseFloat(String(value)) || 0) + amount);
     onChange(nextVal);
   };

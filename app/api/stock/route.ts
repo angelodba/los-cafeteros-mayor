@@ -335,7 +335,7 @@ export async function GET() {
       { stockMap, productUpdates, totalItems: Object.keys(stockMap).length },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
         },
       }
     );
