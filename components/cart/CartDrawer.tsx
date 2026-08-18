@@ -1,12 +1,40 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingCart, X, Scale, ShoppingBag, ClipboardList, Send, Trash2, Tag, Percent } from 'lucide-react';
+import { 
+  ShoppingCart, 
+  X, 
+  Scale, 
+  ShoppingBag, 
+  ClipboardList, 
+  Send, 
+  Trash2, 
+  Percent, 
+  Truck, 
+  ArrowRight, 
+  MapPin, 
+  Sparkles,
+  CheckCircle2,
+  AlertCircle
+} from 'lucide-react';
 import QuantitySelector from '../catalog/QuantitySelector';
 import { useStore } from '../../context/StoreContext';
 import { createQuoteAction } from '../../app/actions/orders';
 import type { CartItem } from '../../types/catalog';
 import { formatUSD, formatVES } from '../../lib/currency';
+
+const CARACAS_ZONES = [
+  'Las Mercedes',
+  'Chacao',
+  'Altamira',
+  'Los Palos Grandes',
+  'El Hatillo',
+  'La Castellana',
+  'Bello Monte',
+  'San Román',
+  'Sebucán',
+  'La Trinidad'
+];
 
 export default function CartDrawer() {
   const { 
@@ -21,16 +49,15 @@ export default function CartDrawer() {
     setBillingData
   } = useStore();
 
+  const [activeStep, setActiveStep] = useState<1 | 2>(1);
+  const [notes, setNotes] = useState('');
+
   const onClose = () => setIsCartOpen(false);
   const onClearCart = () => clearCart();
 
   const handleBillingChange = (field: keyof typeof billingData, value: string) => {
     setBillingData((prev) => ({ ...prev, [field]: value }));
   };
-
-  const [notes, setNotes] = useState('');
-
-
 
   // Lock body scroll when cart drawer is active on mobile devices
   useEffect(() => {
@@ -55,7 +82,6 @@ export default function CartDrawer() {
 
   cart.forEach((item: CartItem) => {
     const prod = item.product;
-    // Temporary Empty Qty Handling: gracefully handle '' while user is typing
     const qty = item.qty === '' ? 0 : parseFloat(String(item.qty)) || 0;
     const minWholesaleQty = prod.minWholesaleQty || 30;
     const isWholesale = qty >= minWholesaleQty;
@@ -80,6 +106,8 @@ export default function CartDrawer() {
   const activeBcvRate = bcvRate && bcvRate > 0 ? bcvRate : 36.50;
   let totalBs = totalUsd * activeBcvRate;
   totalBs = Math.round((totalBs + Number.EPSILON) * 100) / 100;
+
+  const isStep2Valid = Boolean(billingData?.restName?.trim() && billingData?.zone?.trim());
 
   // Generador de Cotizaciones por WhatsApp automatizado con Markdown estructurado
   const handleSendWhatsapp = () => {
@@ -173,12 +201,11 @@ export default function CartDrawer() {
     const waWindow = window.open(`https://wa.me/584247087749?text=${encoded}`, '_blank', 'noopener,noreferrer');
     if (waWindow) waWindow.opener = null;
 
-    // Limpiar el carrito después de abrir WhatsApp.
-    // Usamos un timeout breve para asegurar que el navegador procese la apertura primero.
+    // Limpiar carrito y reiniciar formulario, pero manteniendo los datos de facturación en localStorage
     setTimeout(() => {
       onClearCart();
-      setBillingData({ restName: '', rif: '', zone: '', phone: '' });
       setNotes('');
+      setActiveStep(1);
       onClose();
     }, 800);
   };
@@ -187,6 +214,8 @@ export default function CartDrawer() {
     <div className="drawer-overlay">
       <div className="cart-drawer">
         <div className="mobile-drawer-handle" aria-hidden="true" />
+        
+        {/* Encabezado del Cotizador */}
         <div className="drawer-header">
           <div className="drawer-title-group">
             <ShoppingCart size={22} color="var(--verde-hoja)" />
@@ -200,205 +229,315 @@ export default function CartDrawer() {
           </button>
         </div>
 
-        <div className="drawer-body">
-          {/* Caja de Progreso de Descuento por Volumen */}
-          <div className="cart-wholesale-progress-box">
-            <div className="progress-info">
-              <span><Scale size={13} /> Descuento Al Mayor por Rubro (30+ kg)</span>
-              <span><strong>{wholesaleItemsCount} de {cart.length} con Tarifa Mayor</strong></span>
-            </div>
-            <div className="progress-bar-bg">
-              <div
-                className="progress-bar-fill"
-                style={{ width: `${Math.min(100, (wholesaleItemsCount / Math.max(1, cart.length)) * 100)}%` }}
-              ></div>
-            </div>
-            {totalSavingsUsd > 0 ? (
-              <p className="progress-status-msg text-success">
-                ✨ ¡Estás ahorrando <strong>${totalSavingsUsd.toFixed(2)} USD</strong> en este pedido con tarifa al mayor!
-              </p>
-            ) : (
-              <p className="progress-status-msg">
-                💡 Agrega 30 kg o más de un rubro individual para activar su tarifa especial al mayor.
-              </p>
-            )}
-          </div>
+        {/* Pestañas Superiores de Pasos Simétricas (50% / 50%) */}
+        <div className="drawer-steps-nav">
+          <button
+            type="button"
+            className={`drawer-step-tab ${activeStep === 1 ? 'active' : ''}`}
+            onClick={() => setActiveStep(1)}
+          >
+            <ShoppingCart size={16} />
+            <span>1. Rubros ({cart.length})</span>
+          </button>
+          <button
+            type="button"
+            className={`drawer-step-tab ${activeStep === 2 ? 'active' : ''}`}
+            onClick={() => {
+              if (cart.length === 0) {
+                alert('Agrega rubros a la cotización primero.');
+                return;
+              }
+              setActiveStep(2);
+            }}
+          >
+            <Truck size={16} />
+            <span>2. Datos de Despacho</span>
+          </button>
+        </div>
 
-          {cart.length === 0 ? (
-            <div className="empty-cart-view">
-              <ShoppingBag size={56} className="empty-cart-icon" />
-              <h4>Tu cotización está vacía</h4>
-              <p>Agrega hortalizas y frutas frescas desde el catálogo para calcular tu pedido en vivo.</p>
-            </div>
-          ) : (
+        {/* Cuerpo del Drawer según Paso Activo */}
+        <div className="drawer-body">
+          {activeStep === 1 ? (
+            /* ============================================================
+               PASO 1: RUBROS Y COTIZACIÓN (PANTALLA COMPLETA)
+               ============================================================ */
             <>
-              <div className="cart-items-header-bar">
-                <span>Rubros en Cotización ({cart.length})</span>
-                <button className="btn-clear-all" onClick={onClearCart}>
-                  <Trash2 size={13} /> Vaciar
-                </button>
+              {/* Barra de Progreso de Descuento por Volumen */}
+              <div className="cart-wholesale-progress-box">
+                <div className="progress-info">
+                  <span><Scale size={13} /> Descuento Al Mayor por Rubro (30+ kg)</span>
+                  <span><strong>{wholesaleItemsCount} de {cart.length} con Tarifa Mayor</strong></span>
+                </div>
+                <div className="progress-bar-bg">
+                  <div
+                    className="progress-bar-fill"
+                    style={{ width: `${Math.min(100, (wholesaleItemsCount / Math.max(1, cart.length)) * 100)}%` }}
+                  ></div>
+                </div>
+                {totalSavingsUsd > 0 ? (
+                  <p className="progress-status-msg text-success">
+                    ✨ ¡Estás ahorrando <strong>${totalSavingsUsd.toFixed(2)} USD</strong> en este pedido con tarifa al mayor!
+                  </p>
+                ) : (
+                  <p className="progress-status-msg">
+                    💡 Agrega 30 kg o más de un rubro individual para activar su tarifa especial al mayor.
+                  </p>
+                )}
               </div>
 
-              <div className="cart-items-list-v2">
-                {cart.map((item) => {
-                  const prod = item.product;
-                  const qty = parseFloat(String(item.qty)) || 0;
-                  const minWholesaleQty = prod.minWholesaleQty || 30;
-                  const isWholesale = qty >= minWholesaleQty;
-                  const unitPrice = isWholesale ? prod.priceMayor : prod.priceDetal;
-                  const itemSubtotal = unitPrice * qty;
-                  const savingPercent = prod.priceDetal > 0
-                    ? Math.round(((prod.priceDetal - prod.priceMayor) / prod.priceDetal) * 100)
-                    : 0;
+              {cart.length === 0 ? (
+                <div className="empty-cart-view">
+                  <ShoppingBag size={56} className="empty-cart-icon" />
+                  <h4>Tu cotización está vacía</h4>
+                  <p>Agrega hortalizas y frutas frescas desde el catálogo para calcular tu pedido en vivo.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="cart-items-header-bar">
+                    <span>Rubros en Cotización ({cart.length})</span>
+                    <button className="btn-clear-all" onClick={onClearCart}>
+                      <Trash2 size={13} /> Vaciar
+                    </button>
+                  </div>
 
-                  return (
-                    <div key={prod.id} className={`cart-item-card ${isWholesale ? 'item-wholesale-active' : ''}`}>
-                      <div className="item-card-top">
-                        <div className="item-emoji">{prod.emoji}</div>
-                        <div className="item-meta">
-                          <div className="item-title">{prod.name}</div>
-                          <div className="item-unit-rate">
-                            ${unitPrice.toFixed(2)} / {prod.unit}{' '}
-                            {isWholesale ? (
-                              <span className="badge-wholesale-inline">✨ Al Mayor (-{savingPercent}%)</span>
-                            ) : (
-                              <span className="badge-detal-inline">Al Detal</span>
-                            )}
+                  <div className="cart-items-list-v2">
+                    {cart.map((item) => {
+                      const prod = item.product;
+                      const qty = parseFloat(String(item.qty)) || 0;
+                      const minWholesaleQty = prod.minWholesaleQty || 30;
+                      const isWholesale = qty >= minWholesaleQty;
+                      const unitPrice = isWholesale ? prod.priceMayor : prod.priceDetal;
+                      const itemSubtotal = unitPrice * qty;
+                      const savingPercent = prod.priceDetal > 0
+                        ? Math.round(((prod.priceDetal - prod.priceMayor) / prod.priceDetal) * 100)
+                        : 0;
+
+                      return (
+                        <div key={prod.id} className={`cart-item-card ${isWholesale ? 'item-wholesale-active' : ''}`}>
+                          <div className="item-card-top">
+                            <div className="item-emoji">{prod.emoji}</div>
+                            <div className="item-meta">
+                              <div className="item-title">{prod.name}</div>
+                              <div className="item-unit-rate">
+                                ${unitPrice.toFixed(2)} / {prod.unit}{' '}
+                                {isWholesale ? (
+                                  <span className="badge-wholesale-inline">✨ Al Mayor (-{savingPercent}%)</span>
+                                ) : (
+                                  <span className="badge-detal-inline">Al Detal</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="item-total-col">
+                              <span className="item-subtotal-val">${itemSubtotal.toFixed(2)}</span>
+                              <button
+                                className="btn-remove-item"
+                                onClick={() => onRemoveItem(prod.id)}
+                                title="Eliminar rubro"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="item-card-bottom">
+                            <QuantitySelector
+                              value={item.qty}
+                              onChange={(newQty) => {
+                                if (newQty !== '' && parseFloat(String(newQty)) <= 0) onRemoveItem(prod.id);
+                                else onUpdateQty(prod.id, newQty);
+                              }}
+                              unit={prod.unit}
+                              min={0}
+                              max={999}
+                              showQuickPills={false}
+                              isWholesaleActive={isWholesale}
+                              minWholesaleQty={minWholesaleQty}
+                              savingPercent={savingPercent}
+                            />
                           </div>
                         </div>
-                        <div className="item-total-col">
-                          <span className="item-subtotal-val">${itemSubtotal.toFixed(2)}</span>
-                          <button
-                            className="btn-remove-item"
-                            onClick={() => onRemoveItem(prod.id)}
-                            title="Eliminar rubro"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="item-card-bottom">
-                        <QuantitySelector
-                          value={item.qty}
-                          onChange={(newQty) => {
-                            if (newQty !== '' && parseFloat(String(newQty)) <= 0) onRemoveItem(prod.id);
-                            else onUpdateQty(prod.id, newQty);
-                          }}
-                          unit={prod.unit}
-                          min={0}
-                          max={999}
-                          showQuickPills={false}
-                          isWholesaleActive={isWholesale}
-                          minWholesaleQty={minWholesaleQty}
-                          savingPercent={savingPercent}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            /* ============================================================
+               PASO 2: DATOS DEL CLIENTE Y DESPACHO (ESPACIOSO CON PÍLDORAS)
+               ============================================================ */
+            <div className="restaurant-form-section-step2">
+              <div className="step2-intro-header">
+                <div className="step2-badge"><Truck size={14} /> Despacho en Caracas</div>
+                <h4>Datos del Cliente & Punto de Despacho</h4>
+                <p>Completa la información para que nuestro equipo coordine la entrega de tus hortalizas.</p>
               </div>
 
-              {/* Formulario de Datos del Cliente */}
-              <div className="restaurant-form-section">
-                <h4 className="form-section-title">
-                  <ClipboardList size={16} color="var(--verde-hoja)" /> Datos del Cliente / Punto de Despacho
-                </h4>
-                <div className="form-grid">
-                  <div className="form-group">
-                    <label>Nombre / Restaurante *</label>
+              <div className="form-grid">
+                <div className="form-group full-width">
+                  <label>Nombre o Razón Social (Restaurante / Negocio) *</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Trattoria Bellini / Juan Pérez"
+                    value={billingData?.restName || ''}
+                    onChange={(e) => handleBillingChange('restName', e.target.value)}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>RIF o Cédula (Opcional)</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: J-12345678-0"
+                    value={billingData?.rif || ''}
+                    onChange={(e) => handleBillingChange('rif', e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Teléfono WhatsApp (Opcional)</label>
+                  <input
+                    type="tel"
+                    placeholder="Ej: 0414-1234567"
+                    value={billingData?.phone || ''}
+                    onChange={(e) => handleBillingChange('phone', e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group full-width">
+                  <label>Zona o Dirección de Entrega en Caracas *</label>
+                  <div className="zone-input-wrapper">
+                    <MapPin size={16} className="zone-input-icon" />
                     <input
                       type="text"
-                      placeholder="Ej: Trattoria Bellini"
-                      value={billingData?.restName || ''}
-                      onChange={(e) => handleBillingChange('restName', e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>RIF o Cédula</label>
-                    <input
-                      type="text"
-                      placeholder="Ej: J-12345678-0"
-                      value={billingData?.rif || ''}
-                      onChange={(e) => handleBillingChange('rif', e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Zona de Entrega en Caracas *</label>
-                    <input
-                      type="text"
-                      placeholder="Ej: Las Mercedes"
+                      className="zone-text-input"
+                      placeholder="Ej: Las Mercedes, Calle París / San Bernardino..."
                       value={billingData?.zone || ''}
                       onChange={(e) => handleBillingChange('zone', e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
-                    <label>Teléfono WhatsApp</label>
-                    <input
-                      type="tel"
-                      placeholder="Ej: 0414-1234567"
-                      value={billingData?.phone || ''}
-                      onChange={(e) => handleBillingChange('phone', e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group full-width">
-                    <label>Observaciones del Pedido</label>
-                    <textarea
-                      rows={2}
-                      placeholder="Ej: Pimentones bien verdes, tomates firmes..."
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                    />
+
+                  {/* Píldoras interactivas de Caracas */}
+                  <div className="zone-pills-container">
+                    <span className="zone-pills-title">Zonas frecuentes en Caracas:</span>
+                    <div className="zone-pills-grid">
+                      {CARACAS_ZONES.map((zone) => {
+                        const isSelected = billingData?.zone?.toLowerCase().includes(zone.toLowerCase());
+                        return (
+                          <button
+                            key={zone}
+                            type="button"
+                            className={`zone-pill ${isSelected ? 'selected' : ''}`}
+                            onClick={() => handleBillingChange('zone', zone)}
+                          >
+                            📍 {zone}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
+
+                <div className="form-group full-width">
+                  <label>Observaciones o Requerimientos Especiales</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Ej: Hortalizas seleccionadas para ensaladas, tomates maduros, entrega en la mañana..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                </div>
               </div>
-            </>
+            </div>
           )}
         </div>
 
+        {/* ============================================================
+           PIE DEL DRAWER (FOOTERS DIFERENCIADOS POR PASO)
+           ============================================================ */}
         {cart.length > 0 && (
-          <div className="drawer-footer">
-            <div className="summary-rows">
-              <div className="summary-row">
-                <span>Subtotal (Precio Detal):</span>
-                <span>{formatUSD(subtotalDetalUsd)}</span>
-              </div>
-              {totalSavingsUsd > 0 && (
-                <div className="summary-row saving-row">
-                  <span><Percent size={12} /> Ahorro por Volumen (Al Mayor):</span>
-                  <span className="saving-amount">-{formatUSD(totalSavingsUsd)}</span>
+          <>
+            {activeStep === 1 ? (
+              /* Footer Paso 1: Barra delgada y fija para continuar */
+              <div className="drawer-footer-step1">
+                <div className="step1-footer-summary">
+                  <div className="step1-total-info">
+                    <span className="step1-total-label">Total Estimado:</span>
+                    <strong className="step1-total-usd">{formatUSD(totalUsd)}</strong>
+                    <span className="step1-total-bcv">({formatVES(totalUsd, activeBcvRate)})</span>
+                  </div>
+                  {totalSavingsUsd > 0 && (
+                    <span className="step1-saving-tag">
+                      <Sparkles size={12} /> Ahorro: -{formatUSD(totalSavingsUsd)}
+                    </span>
+                  )}
                 </div>
-              )}
-              <div className="summary-row total-row">
-                <span>Total Estimado USD:</span>
-                <strong className="total-price-usd">{formatUSD(totalUsd)}</strong>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-step1-continue"
+                  onClick={() => setActiveStep(2)}
+                >
+                  <span>Continuar a Despacho</span>
+                  <ArrowRight size={18} />
+                </button>
               </div>
-              <div className="summary-row bcv-row">
-                <span>Ref. en Bs (Tasa Oficial BCV):</span>
-                <span>{formatVES(totalUsd, activeBcvRate)}</span>
-              </div>
-            </div>
+            ) : (
+              /* Footer Paso 2: Pestaña Inferior Dinámica (Reducida -> Expandida) */
+              <div className={`drawer-footer-step2 ${isStep2Valid ? 'is-expanded' : 'is-collapsed'}`}>
+                {!isStep2Valid ? (
+                  /* Estado 1: Ultra reducida (~36px), no estorba al escribir */
+                  <div className="quote-summary-card-collapsed">
+                    <div className="collapsed-info-bar">
+                      <div className="collapsed-left">
+                        <span className="collapsed-prefix">Total:</span>
+                        <strong className="collapsed-amount">{formatUSD(totalUsd)}</strong>
+                      </div>
+                      <div className="collapsed-right">
+                        <span>✍️ Completa tu <strong>Nombre</strong> y <strong>Zona</strong> para activar WhatsApp</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Estado 2: Desplegada con resumen y botón de WhatsApp */
+                  <div className="quote-summary-card-expanded">
+                    <div className="summary-rows">
+                      <div className="summary-row">
+                        <span>Subtotal (Precio Detal):</span>
+                        <span>{formatUSD(subtotalDetalUsd)}</span>
+                      </div>
+                      {totalSavingsUsd > 0 && (
+                        <div className="summary-row saving-row">
+                          <span><Percent size={12} /> Ahorro por Volumen (Al Mayor):</span>
+                          <span className="saving-amount">-{formatUSD(totalSavingsUsd)}</span>
+                        </div>
+                      )}
+                      <div className="summary-row total-row">
+                        <span>Total Estimado USD:</span>
+                        <strong className="total-price-usd">{formatUSD(totalUsd)}</strong>
+                      </div>
+                      <div className="summary-row bcv-row">
+                        <span>Ref. en Bs (Tasa Oficial BCV):</span>
+                        <span>{formatVES(totalUsd, activeBcvRate)}</span>
+                      </div>
+                    </div>
 
-            {(!billingData?.restName?.trim() || !billingData?.zone?.trim()) ? (
-              <div style={{ background: 'rgba(216,30,19,0.1)', color: '#D81E13', padding: '10px 14px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600, marginBottom: '12px', textAlign: 'center' }}>
-                ⚠️ Rellena tus Datos de Cliente y Punto de Despacho arriba para poder enviar la cotización.
+                    <button 
+                      type="button" 
+                      className="btn btn-whatsapp btn-block" 
+                      onClick={handleSendWhatsapp}
+                    >
+                      <Send size={18} />
+                      <span>Enviar Cotización a WhatsApp 📲</span>
+                    </button>
+                    <p className="whatsapp-disclaimer">Recibirás confirmación inmediata de peso exacto y horario de despacho.</p>
+                  </div>
+                )}
               </div>
-            ) : null}
-            <button 
-              type="button" 
-              className="btn btn-whatsapp btn-block" 
-              onClick={handleSendWhatsapp}
-              disabled={!billingData?.restName?.trim() || !billingData?.zone?.trim()}
-              style={{ opacity: (!billingData?.restName?.trim() || !billingData?.zone?.trim()) ? 0.5 : 1 }}
-            >
-              <Send size={18} />
-              <span>Enviar Cotización a WhatsApp</span>
-            </button>
-            <p className="whatsapp-disclaimer">Recibirás confirmación inmediata de peso exacto y horario de despacho.</p>
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>
   );
 }
-

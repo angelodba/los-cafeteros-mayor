@@ -2,7 +2,7 @@ import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
   dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
+  disable: true,
 });
 
 /** @type {import('next').NextConfig} */
@@ -15,6 +15,8 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
+          // Control de caché para asegurar que clientes móviles siempre obtengan la versión en vivo
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
           // Evita que la app sea embebida en iframes (clickjacking)
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           // Evita MIME-type sniffing

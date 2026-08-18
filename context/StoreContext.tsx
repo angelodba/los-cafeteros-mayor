@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode, useState, useMemo } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useMemo, useEffect } from 'react';
 import { useBcvRate } from '../hooks/useBcvRate';
 import { useStock } from '../hooks/useStock';
 import { useCart } from '../hooks/useCart';
@@ -69,6 +69,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     zone: '',
     phone: '',
   });
+
+  // Cargar datos de despacho guardados previamente en el cliente (localStorage)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('loscafeteros_billing');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          setBillingData((prev) => ({ ...prev, ...parsed }));
+        }
+      }
+    } catch {
+      // Ignorar errores en modo incógnito/privado
+    }
+  }, []);
+
+  // Persistir cambios automáticamente para futuros pedidos
+  useEffect(() => {
+    try {
+      localStorage.setItem('loscafeteros_billing', JSON.stringify(billingData));
+    } catch {
+      // Ignorar
+    }
+  }, [billingData]);
 
   const value = useMemo(
     () => ({

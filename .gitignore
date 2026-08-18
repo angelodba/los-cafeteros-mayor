@@ -7,3 +7,4 @@ node_modules
 .ds_store
 Thumbs.db
 .env*
+*.tsbuildinfo

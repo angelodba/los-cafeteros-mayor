@@ -55,6 +55,27 @@ export const viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`${syne.variable} ${spaceMono.variable} ${jakarta.variable}`}>
+      <head>
+        {/* Script de inicio: purga Service Workers y CacheStorage para garantizar versión en vivo en móviles */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined') {
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for (var r of registrations) { r.unregister(); }
+                  }).catch(function() {});
+                }
+                if ('caches' in window) {
+                  caches.keys().then(function(keys) {
+                    for (var k of keys) { caches.delete(k); }
+                  }).catch(function() {});
+                }
+              }
+            `,
+          }}
+        />
+      </head>
       <body style={{ fontFamily: 'var(--font-jakarta), sans-serif' }}>
         {children}
       </body>
