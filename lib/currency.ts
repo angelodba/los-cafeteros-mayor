@@ -19,12 +19,12 @@ export function formatVES(amountUSD: number, bcvRate: number): string {
   // Redondeo bancario estricto a 2 decimales
   const totalVES = Math.round(amountUSD * bcvRate * 100) / 100;
   
-  return new Intl.NumberFormat('es-VE', {
-    style: 'currency',
-    currency: 'VES',
+  const formatted = new Intl.NumberFormat('es-VE', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(totalVES);
+
+  return `Bs. ${formatted}`;
 }
 
 export function calculateSubtotal(cartItems: { product: { priceMayor: number; priceDetal: number; minWholesaleQty?: number }; qty: number }[]): number {

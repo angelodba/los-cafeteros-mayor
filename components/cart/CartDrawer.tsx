@@ -109,7 +109,7 @@ export default function CartDrawer() {
 
   const isStep2Valid = Boolean(billingData?.restName?.trim() && billingData?.zone?.trim());
 
-  // Generador del mensaje con formato Markdown para WhatsApp
+  // Generador del mensaje con formato Markdown profesional para WhatsApp
   const generateWhatsappMessage = () => {
     const customerName = billingData?.restName?.trim() || 'Cliente';
     const deliveryZone = billingData?.zone?.trim() || 'Caracas';
@@ -130,36 +130,55 @@ export default function CartDrawer() {
       const isWholesale = qty >= minWholesaleQty;
       const unitPrice = isWholesale ? prod.priceMayor : prod.priceDetal;
       const sub = Math.round(((unitPrice * qty) + Number.EPSILON) * 100) / 100;
+      const badgeInfo = (prod.changes || prod.wholesaleNote || '').trim();
 
-      const badgeInfo = prod.changes || prod.wholesaleNote || '';
-      const badgeText = badgeInfo ? ` [${badgeInfo}]` : '';
-
-      itemsText += `• ${qty} ${prod.unit} — *${prod.name}* ${isWholesale ? '(Al Mayor)' : '(Detal)'}${badgeText} ➡️ *${formatUSD(sub)}* (${formatUSD(unitPrice)}/${prod.unit})\n`;
+      itemsText += `▪️ *${qty} ${prod.unit}* — *${prod.name}* ${isWholesale ? '(Tarifa Al Mayor)' : '(Detal)'}\n`;
+      itemsText += `   Precio: ${formatUSD(unitPrice)}/${prod.unit}  ➔  Subtotal: *${formatUSD(sub)} USD*\n`;
+      if (badgeInfo) {
+        itemsText += `   ℹ️ _${badgeInfo}_\n`;
+      }
+      itemsText += `\n`;
     });
 
-    let msg = `*NUEVA COTIZACIÓN AL MAYOR - LOS CAFETEROS* 🚛\n\n`;
-    msg += `📅 *Fecha:* ${dateStr} | 🕒 *Hora:* ${timeStr}\n\n`;
+    let msg = `🌿 *LOS CAFETEROS | FERIA DE HORTALIZAS*\n`;
+    msg += `📋 *SOLICITUD DE COTIZACIÓN AL MAYOR*\n`;
+    msg += `────────────────────────────\n`;
+    msg += `📅 *Fecha:* ${dateStr}  •  🕒 *Hora:* ${timeStr}\n\n`;
 
-    msg += `👤 *Cliente:* ${customerName}\n`;
-    if (billingData?.rif) msg += `📝 *RIF:* ${billingData.rif}\n`;
-    if (billingData?.phone) msg += `📞 *Teléfono:* ${billingData.phone}\n`;
-    msg += `📍 *Zona Despacho:* ${deliveryZone}\n`;
-    msg += `\n🛒 *DETALLE DEL PEDIDO:*\n${itemsText}\n`;
-
-    msg += `-----------------------------------\n`;
-    msg += `💵 *Subtotal al Detal:* ${formatUSD(subtotalDetalUsd)}\n`;
-    if (totalSavingsUsd > 0) {
-      msg += `🌟 *Descuento por Volumen:* -${formatUSD(totalSavingsUsd)}\n`;
+    msg += `👤 *DATOS DEL CLIENTE:*\n`;
+    msg += `• *Nombre / Negocio:* ${customerName}\n`;
+    if (billingData?.rif?.trim()) {
+      msg += `• *RIF / Cédula:* ${billingData.rif.trim()}\n`;
     }
-    msg += `💵 *TOTAL ESTIMADO (USD):* *${formatUSD(totalUsd)}*\n`;
-    msg += `🇻🇪 *TOTAL BCV (Bs):* *${formatVES(totalUsd, activeBcvRate)}* (Tasa: ${activeBcvRate.toFixed(2)})\n`;
-    msg += `-----------------------------------\n\n`;
+    if (billingData?.phone?.trim()) {
+      msg += `• *Teléfono:* ${billingData.phone.trim()}\n`;
+    }
+    msg += `• *Zona de Despacho:* 📍 ${deliveryZone}\n\n`;
+
+    msg += `🛒 *DETALLE DEL PEDIDO (${cart.length} ${cart.length === 1 ? 'rubro' : 'rubros'}):*\n`;
+    msg += `────────────────────────────\n`;
+    msg += itemsText.trimEnd() + `\n\n`;
 
     if (notes.trim()) {
-      msg += `📝 *Observaciones:* ${notes.trim()}\n\n`;
+      msg += `📝 *OBSERVACIONES:*\n`;
+      msg += `"${notes.trim()}"\n\n`;
     }
 
-    msg += `_Solicitud generada automáticamente desde la web oficial de LOS CAFETEROS._`;
+    msg += `────────────────────────────\n`;
+    msg += `💰 *RESUMEN DE COTIZACIÓN:*\n`;
+    msg += `• *Subtotal Base (Detal):* ${formatUSD(subtotalDetalUsd)} USD\n`;
+    if (totalSavingsUsd > 0) {
+      msg += `• ✨ *Ahorro por Volumen:* -${formatUSD(totalSavingsUsd)} USD\n`;
+    }
+    msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `💵 *TOTAL ESTIMADO (USD):* *${formatUSD(totalUsd)} USD*\n`;
+    msg += `🇻🇪 *TOTAL OFICIAL BCV:* *${formatVES(totalUsd, activeBcvRate)}*\n`;
+    msg += `_(Tasa Oficial BCV: ${activeBcvRate.toFixed(2)} Bs/USD)_\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    msg += `🚚 _Solicitud generada desde la plataforma web oficial de LOS CAFETEROS._\n`;
+    msg += `_Favor confirmar disponibilidad y coordinar despacho._`;
+
     return msg;
   };
 
