@@ -1050,6 +1050,28 @@ img { max-width: 100%; height: auto; display: block; }
     border-bottom: 1px solid rgba(13, 13, 13, 0.05);
 }
 
+.product-image-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 120px;
+}
+
+.product-real-img {
+    max-width: 110px;
+    max-height: 110px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.12));
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.product-card:hover .product-real-img {
+    transform: scale(1.12) translateY(-4px);
+}
+
 .product-emoji {
     font-size: 4rem;
     line-height: 1;

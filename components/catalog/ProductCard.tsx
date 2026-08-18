@@ -80,7 +80,21 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
           </span>
         )}
 
-        <div className="product-emoji">{prod.emoji}</div>
+        {/* Real Product Image with Emoji Fallback */}
+        <div className="product-image-wrapper">
+          <img
+            src={`/products/${prod.id}.webp`}
+            alt={prod.name}
+            className="product-real-img"
+            loading="lazy"
+            onError={(e) => {
+              (e.currentTarget as HTMLElement).style.display = 'none';
+              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+              if (fallback) fallback.style.display = 'block';
+            }}
+          />
+          <div className="product-emoji" style={{ display: 'none' }}>{prod.emoji}</div>
+        </div>
       </div>
 
       <div className="product-details">
