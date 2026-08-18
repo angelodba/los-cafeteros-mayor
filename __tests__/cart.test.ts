@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Product, ProductUpdatesMap, NormalizedCartItem, CartItem } from '../types/catalog';
+import { getProductUpdate } from '../data/products';
 
 function resolveCart(
   rawCart: NormalizedCartItem[],
@@ -9,8 +10,7 @@ function resolveCart(
   const productMap = new Map<string, Product>();
 
   baseProducts.forEach((p) => {
-    const slug = p.name ? p.name.toLowerCase().replace(/\s+/g, '-') : '';
-    const updates = productUpdates[p.id] || productUpdates[slug] || productUpdates[p.name];
+    const updates = getProductUpdate(p, productUpdates);
     productMap.set(String(p.id), updates ? { ...p, ...updates } : p);
   });
 

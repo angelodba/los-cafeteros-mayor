@@ -5,6 +5,7 @@ import { Plus, CheckCircle2, AlertTriangle, XCircle, Slash, ShoppingBag, Sparkle
 import QuantitySelector from './QuantitySelector';
 import { Product, CartItem, StockData } from '../../types/catalog';
 import { useStore } from '../../context/StoreContext';
+import { getProductUpdate } from '../../data/products';
 
 interface ProductCardProps {
   product: Product;
@@ -19,9 +20,8 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
   const [qtyInput, setQtyInput] = useState<number | string>(1);
   const { productUpdates } = useStore();
 
-  // Aplicar actualizaciones reactivas del Google Sheet sin mutar el array PRODUCTS
-  const slug = product.name ? product.name.toLowerCase().replace(/\s+/g, '-') : '';
-  const updates = productUpdates[product.id] || productUpdates[slug] || productUpdates[product.name];
+  // Aplicar actualizaciones reactivas del Google Sheet de forma segura sin colisiones
+  const updates = getProductUpdate(product, productUpdates);
   const prod: Product = updates ? { ...product, ...updates } : product;
 
   const itemStock = stockData[prod.id] || { stockQty: 100, minAlert: 15, status: 'disponible' };

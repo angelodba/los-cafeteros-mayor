@@ -1,4 +1,4 @@
-import type { Product } from '../types/catalog';
+import type { Product, ProductUpdate, ProductUpdatesMap } from '../types/catalog';
 
 export const PRODUCTS: Product[] = [
   {
@@ -1108,8 +1108,57 @@ export const PRODUCTS: Product[] = [
   }
 ];
 
-function normalizeText(str: string): string {
+export function normalizeKey(str: string): string {
   if (!str) return '';
-  return str.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  return str
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+export function getProductUpdate(
+  product: Product,
+  productUpdates?: ProductUpdatesMap
+): ProductUpdate | undefined {
+  if (!productUpdates || Object.keys(productUpdates).length === 0) return undefined;
+
+  const slug = product.name ? product.name.toLowerCase().replace(/\s+/g, '-') : '';
+  const normName = normalizeKey(product.name);
+
+  // 1. Prioridad: Coincidencia por slug o nombre exacto / normalizado
+  let update =
+    productUpdates[slug] ||
+    productUpdates[product.name] ||
+    productUpdates[normName];
+
+  if (update) return update;
+
+  // 2. Si no coincide por nombre, buscar por ID numérico
+  const idUpdate = productUpdates[product.id];
+  if (idUpdate) {
+    if (!idUpdate.name) return idUpdate;
+
+    const updateNameNorm = normalizeKey(String(idUpdate.name));
+    if (!updateNameNorm) return idUpdate;
+
+    if (normName.includes(updateNameNorm) || updateNameNorm.includes(normName)) {
+      return idUpdate;
+    }
+
+    // Si comparten palabras clave significativas del mismo rubro (ej: "aguacate", "manzana", "tomate")
+    const baseWords = product.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/\s+/).filter(w => w.length >= 3);
+    const updateWords = String(idUpdate.name).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/\s+/).filter(w => w.length >= 3);
+
+    const hasCommonWord = baseWords.some(bw => updateWords.some(uw => uw.includes(bw) || bw.includes(uw)));
+    if (hasCommonWord) {
+      return idUpdate;
+    }
+
+    // Si no comparten ninguna palabra clave (ej: "Piña" vs "Tomate"), es un ID erróneo en el Sheet y no debe sobreescribir
+  }
+
+  return undefined;
 }
 

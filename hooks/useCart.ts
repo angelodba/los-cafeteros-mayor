@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { PRODUCTS } from '../data/products';
+import { PRODUCTS, getProductUpdate } from '../data/products';
 import type { CartItem, Product, NormalizedCartItem, ProductUpdatesMap } from '../types/catalog';
 
 export function useCart(resolvedProducts?: Product[], productUpdates?: ProductUpdatesMap) {
@@ -16,40 +16,31 @@ export function useCart(resolvedProducts?: Product[], productUpdates?: ProductUp
         try {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) {
+            // Migrate legacy { product, qty } schema if encountered
             const normalized: NormalizedCartItem[] = parsed
-              .map((item: any) => {
-                // Backward compatibility: Support legacy format { product: { id: "1", ... }, qty }
-                if (item && item.product && item.product.id) {
-                  return {
-                    productId: String(item.product.id),
-                    qty: item.qty,
-                  };
-                }
-                // Standard normalized format: { productId: "1", qty }
-                if (item && item.productId) {
-                  return {
-                    productId: String(item.productId),
-                    qty: item.qty,
-                  };
-                }
-                return null;
-              })
-              .filter((item): item is NormalizedCartItem => Boolean(item));
-
+              .filter((item) => item && (item.productId || item.product?.id))
+              .map((item) => ({
+                productId: String(item.productId || item.product?.id),
+                qty: item.qty,
+              }));
             setRawCart(normalized);
           }
-        } catch (e) {
-          console.warn('[useCart] No se pudo restaurar el carrito desde localStorage:', e);
+        } catch {
+          // Graceful fallback for corrupted cache
         }
       }
+      setIsLoaded(true);
     }
-    setIsLoaded(true);
   }, []);
 
-  // 2. Persist ONLY normalized items to localStorage
+  // 2. Persist minimal payload { productId, qty } to localStorage
   useEffect(() => {
     if (isLoaded && typeof window !== 'undefined') {
-      localStorage.setItem('loscafeteros_cart', JSON.stringify(rawCart));
+      try {
+        localStorage.setItem('loscafeteros_cart', JSON.stringify(rawCart));
+      } catch {
+        // Ignore quota/private mode errors
+      }
     }
   }, [rawCart, isLoaded]);
 
@@ -61,8 +52,7 @@ export function useCart(resolvedProducts?: Product[], productUpdates?: ProductUp
     catalogList.forEach((p) => {
       let currentProd = p;
       if (productUpdates) {
-        const slug = p.name ? p.name.toLowerCase().replace(/\s+/g, '-') : '';
-        const updates = productUpdates[p.id] || productUpdates[slug] || productUpdates[p.name];
+        const updates = getProductUpdate(p, productUpdates);
         if (updates) {
           currentProd = { ...p, ...updates };
         }

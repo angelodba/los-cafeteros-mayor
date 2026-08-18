@@ -4,7 +4,7 @@ import React, { createContext, useContext, ReactNode, useState, useMemo, useEffe
 import { useBcvRate } from '../hooks/useBcvRate';
 import { useStock } from '../hooks/useStock';
 import { useCart } from '../hooks/useCart';
-import { PRODUCTS } from '../data/products';
+import { PRODUCTS, getProductUpdate } from '../data/products';
 import type { CartItem, Product, StockData, ProductUpdatesMap } from '../types/catalog';
 
 type BillingData = {
@@ -51,8 +51,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Unified reactive catalog: Merges static defaults with live overrides (names, prices, units, notes)
   const products = useMemo<Product[]>(() => {
     return PRODUCTS.map((baseProduct) => {
-      const slug = baseProduct.name ? baseProduct.name.toLowerCase().replace(/\s+/g, '-') : '';
-      const updates = productUpdates[baseProduct.id] || productUpdates[slug] || productUpdates[baseProduct.name];
+      const updates = getProductUpdate(baseProduct, productUpdates);
       if (!updates) return baseProduct;
       return { ...baseProduct, ...updates };
     });
