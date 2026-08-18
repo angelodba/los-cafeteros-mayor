@@ -1086,6 +1086,25 @@ export const PRODUCTS: Product[] = [
     "tags": [
       "curcuma"
     ]
+  },
+  {
+    "id": "77",
+    "name": "Tomate Pequeño para Salsa",
+    "category": "hortalizas",
+    "priceDetal": 2.99,
+    "priceMayor": 2.20,
+    "wholesaleNote": "Cesta 20 kg ($44.00)",
+    "minWholesaleQty": 20,
+    "unit": "kg",
+    "emoji": "🍅",
+    "highlight": "Ideal para Salsas y Pastas",
+    "tags": [
+      "tomate",
+      "salsa",
+      "cherry",
+      "perita",
+      "guiso"
+    ]
   }
 ];
 
