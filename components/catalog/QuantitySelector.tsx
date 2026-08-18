@@ -14,6 +14,7 @@ interface QuantitySelectorProps {
   isWholesaleActive?: boolean;
   minWholesaleQty?: number;
   savingPercent?: number;
+  isNoWholesale?: boolean;
 }
 
 export default function QuantitySelector({
@@ -26,7 +27,8 @@ export default function QuantitySelector({
   showQuickPills = true,
   isWholesaleActive = false,
   minWholesaleQty = 30,
-  savingPercent = 0
+  savingPercent = 0,
+  isNoWholesale = false
 }: QuantitySelectorProps) {
   const [bounce, setBounce] = useState(false);
 
@@ -69,13 +71,18 @@ export default function QuantitySelector({
   };
 
   const currentQty = parseFloat(String(value)) || 0;
-  const isThresholdClose = !isWholesaleActive && currentQty >= (minWholesaleQty / 2);
+  const isThresholdClose = !isNoWholesale && !isWholesaleActive && currentQty >= (minWholesaleQty / 2);
+  const quickPillsList = isNoWholesale ? [1, 5, 10] : [1, 5, 10, 30];
 
   return (
     <div className="quantity-selector-wrapper">
       {/* Insignia Dinámica de Tarifa */}
       <div className="qty-tier-badge-container">
-        {isWholesaleActive ? (
+        {isNoWholesale ? (
+          <span className="qty-badge-pill detal-active">
+            VENTA AL DETAL
+          </span>
+        ) : isWholesaleActive ? (
           <span className="qty-badge-pill wholesale-active">
             ✨ AL MAYOR ({savingPercent}% OFF)
           </span>
@@ -133,11 +140,11 @@ export default function QuantitySelector({
       {showQuickPills && !disabled && (
         <div className="quick-qty-pills">
           <span className="quick-label">+Rápido:</span>
-          {[1, 5, 10, 30].map((amt) => (
+          {quickPillsList.map((amt) => (
             <button
               key={amt}
               type="button"
-              className={`quick-pill-btn ${amt === 30 ? 'pill-wholesale-trigger' : ''}`}
+              className={`quick-pill-btn ${amt === 30 && !isNoWholesale ? 'pill-wholesale-trigger' : ''}`}
               onClick={() => handleQuickAdd(amt)}
             >
               +{amt} {unit}

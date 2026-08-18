@@ -37,6 +37,8 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
     ? Math.round(((prod.priceDetal - prod.priceMayor) / prod.priceDetal) * 100)
     : 0;
 
+  const isNoWholesale = minWholesaleQty >= 99999 || prod.priceMayor <= 0 || prod.changes === 'sin mayor';
+
   const handleAdd = () => {
     let qtyToAdd = parseFloat(qtyInput as string) || 1;
     if (qtyToAdd < 1) qtyToAdd = 1;
@@ -55,19 +57,19 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
 
         {isOutOfStock ? (
           <span className="stock-status-badge empty">
-            <XCircle size={11} /> Agotado / Bajo Pedido
+            <XCircle size={12} /> Agotado
           </span>
         ) : isLowStock ? (
           <span className="stock-status-badge warning">
-            <AlertTriangle size={11} /> ¡Últimas {availableQty} {prod.unit}!
+            <AlertTriangle size={12} /> ¡Últimas {availableQty} {prod.unit}!
           </span>
         ) : (
           <span className="stock-status-badge available">
-            <CheckCircle2 size={11} /> Disponible
+            <CheckCircle2 size={12} /> Disponible
           </span>
         )}
 
-        {prod.wholesaleNote && (
+        {prod.wholesaleNote && !isNoWholesale && (
           <span className="wholesale-cesta-tag">
             📦 {prod.wholesaleNote}
           </span>
@@ -75,7 +77,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
 
         {prod.changes && (
           <span className="product-change-badge" title={prod.changes}>
-            <Sparkles size={11} className="product-change-icon" />
+            <Sparkles size={12} className="product-change-icon" />
             <span>{prod.changes}</span>
           </span>
         )}
@@ -111,7 +113,11 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
             </span>
           </div>
           <div className="price-comparison">
-            {isItemWholesaleActive ? (
+            {isNoWholesale ? (
+              <span className="no-wholesale-label">
+                ✨ Precio único al Detal
+              </span>
+            ) : isItemWholesaleActive ? (
               <>
                 Detal normal: <s>${prod.priceDetal.toFixed(2)}</s>{' '}
                 <span className="price-saving">(-{savingPercent}% Ahorro Mayor)</span>
@@ -139,6 +145,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
             isWholesaleActive={isItemWholesaleActive}
             minWholesaleQty={minWholesaleQty}
             savingPercent={savingPercent}
+            isNoWholesale={isNoWholesale}
           />
 
           <button
@@ -147,7 +154,7 @@ export default function ProductCard({ product, index, cartItem, stockData, onAdd
             onClick={handleAdd}
             disabled={isOutOfStock}
           >
-            {isOutOfStock ? <Slash size={16} /> : <ShoppingBag size={16} />}
+            {isOutOfStock ? <Slash size={18} /> : <ShoppingBag size={18} />}
             <span>{isOutOfStock ? 'Agotado' : `Agregar al Pedido`}</span>
           </button>
         </div>
